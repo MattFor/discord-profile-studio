@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 APP_NAME = "DiscordProfileStudio"
+START_MINIMIZED = "--start-minimized"
 
 
 class AutostartBackend(ABC):
