@@ -1,6 +1,7 @@
 # Discord Profile Studio
 
-A CLI-driven Tkinter studio for designing Discord Rich Presence and profile widgets, with a live preview beside the editor. Windows and Linux compatible.
+A CLI-driven Tkinter studio for designing Discord Rich Presence and profile widgets, with a live preview beside the
+editor. Windows and Linux compatible.
 
 ## Roadmap
 
@@ -23,6 +24,28 @@ A CLI-driven Tkinter studio for designing Discord Rich Presence and profile widg
 - [ ] Guard against a second instance and hand off to the running one.
 - [ ] Cover the models, storage, token store, and RPC layers with tests in CI.
 - [ ] Publish the first release to PyPI.
+
+## Tasks
+
+MattFor
+
+- [ ] Cli
+- [ ] Auth
+- [ ] Secrets
+- [ ] Secrets storage
+- [ ] Widget section
+
+Kamil
+
+- [ ] Tray integration
+- [ ] Tests
+- [ ] Autostart integration
+- [ ] Custom Rich Presence section
+- [ ] Colour picker
+
+Combined
+
+- [ ] Favourites - I have no clue how to implement this yet
 
 ## License
 
