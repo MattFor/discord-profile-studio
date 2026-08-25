@@ -38,7 +38,7 @@ class WindowsAutostart(AutostartBackend):
         except FileNotFoundError:
             return False
         except OSError as e:
-            msg: str = "Failed to read autostart state"
+            msg = "Failed to read autostart state"
             raise AutostartError(msg) from e
         else:
             return self._target() in value
@@ -55,7 +55,7 @@ class WindowsAutostart(AutostartBackend):
                     key, self.value_name, 0, winreg.REG_SZ, self._command(minimized=minimized)
                 )
         except OSError as e:
-            msg: str = f"Failed to enable autostart: {e}"
+            msg = f"Failed to enable autostart: {e}"
             raise AutostartError(msg) from e
 
     def disable(self) -> None:
@@ -70,5 +70,5 @@ class WindowsAutostart(AutostartBackend):
         except FileNotFoundError:
             return
         except OSError as e:
-            msg: str = f"Failed to disable autostart: {e}"
+            msg = f"Failed to disable autostart: {e}"
             raise AutostartError(msg) from e
