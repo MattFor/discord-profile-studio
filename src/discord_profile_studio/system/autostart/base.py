@@ -13,7 +13,3 @@ class AutostartBackend(ABC):
 
     @abstractmethod
     def disable(self) -> None: ...
-
-
-def backend() -> AutostartBackend:
-    raise NotImplementedError

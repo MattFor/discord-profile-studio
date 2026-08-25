@@ -11,7 +11,7 @@ RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
 
 class WindowsAutostart(AutostartBackend):
     def __init__(self, value_name: str = APP_NAME) -> None:
-        self.value_name = value_name
+        self.value_name: str = value_name
 
     def _target(self) -> str:
         exe = shutil.which("discord-profile-studio-gui")
@@ -20,23 +20,25 @@ class WindowsAutostart(AutostartBackend):
 
         py = Path(sys.executable)
         if py.name.lower() == "python.exe":
-            py = py.with_name("pythonw.exe")
+            py= py.with_name(name="pythonw.exe")
         return f'"{py}" -m discord_profile_studio'
 
     def _command(self, *, minimized: bool) -> str:
-        target = self._target()
+        cmd = self._target()
         if minimized:
-            target = target + " " + START_MINIMIZED
-        return target
+            cmd = cmd + " " + START_MINIMIZED
+        return cmd
 
     def enabled(self) -> bool:
         try:
-            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY, 0, winreg.KEY_READ) as key:
+            with winreg.OpenKey(
+                key=winreg.HKEY_CURRENT_USER, sub_key=RUN_KEY, reserved=0, access=winreg.KEY_READ
+            ) as key:
                 value, _ = winreg.QueryValueEx(key, self.value_name)
         except FileNotFoundError:
             return False
         except OSError as e:
-            msg = "Failed to read autostart state"
+            msg: str = "Failed to read autostart state"
             raise AutostartError(msg) from e
         else:
             return self._target() in value
@@ -44,21 +46,29 @@ class WindowsAutostart(AutostartBackend):
     def enable(self, *, minimized: bool = True) -> None:
         try:
             with winreg.CreateKeyEx(
-                winreg.HKEY_CURRENT_USER, RUN_KEY, 0, winreg.KEY_SET_VALUE
+                key=winreg.HKEY_CURRENT_USER,
+                sub_key=RUN_KEY,
+                reserved=0,
+                access=winreg.KEY_SET_VALUE,
             ) as key:
                 winreg.SetValueEx(
                     key, self.value_name, 0, winreg.REG_SZ, self._command(minimized=minimized)
                 )
         except OSError as e:
-            msg = f"Failed to enable autostart: {e}"
+            msg: str = f"Failed to enable autostart: {e}"
             raise AutostartError(msg) from e
 
     def disable(self) -> None:
         try:
-            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY, 0, winreg.KEY_SET_VALUE) as key:
+            with winreg.OpenKey(
+                key=winreg.HKEY_CURRENT_USER,
+                sub_key=RUN_KEY,
+                reserved=0,
+                access=winreg.KEY_SET_VALUE,
+            ) as key:
                 winreg.DeleteValue(key, self.value_name)
         except FileNotFoundError:
             return
         except OSError as e:
-            msg = f"Failed to disable autostart: {e}"
+            msg: str = f"Failed to disable autostart: {e}"
             raise AutostartError(msg) from e
