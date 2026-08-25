@@ -16,6 +16,6 @@ class Widget:
     title: str = ""
     body: str = ""
     icon: str = ""
-    accent: str = "#5865f2"
+    accent: str = "#5865F2"
     enabled: bool = True
     options: dict[str, str] = field(default_factory=dict)

@@ -3,7 +3,7 @@ from tkinter import ttk
 
 
 class ColorPicker(ttk.Frame):
-    def __init__(self, master: tk.Misc, initial: str = "#5865f2") -> None:
+    def __init__(self, master: tk.Misc, initial: str = "#5865F2") -> None:
         super().__init__(master)
         self.value = tk.StringVar(value=initial)
 

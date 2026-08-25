@@ -20,7 +20,7 @@ class WindowsAutostart(AutostartBackend):
 
         py = Path(sys.executable)
         if py.name.lower() == "python.exe":
-            py= py.with_name(name="pythonw.exe")
+            py = py.with_name(name="pythonw.exe")
         return f'"{py}" -m discord_profile_studio'
 
     def _command(self, *, minimized: bool) -> str:

@@ -1,28 +1,53 @@
+import pkgutil
+import importlib
+
 import typer
 
-from discord_profile_studio.cli.commands import (
-    auth,
-    config,
-    favourites,
-    gui,
-    presence,
-    tray,
-    widgets,
+from discord_profile_studio.cli import commands
+from discord_profile_studio.core.logging import get, setup
+
+app = typer.Typer(
+    name="dps",
+    no_args_is_help=True,
+    add_completion=True,
+    rich_markup_mode=None,
 )
 
-app = typer.Typer(name="dps", no_args_is_help=True, add_completion=True)
-app.add_typer(presence.app, name="presence")
-app.add_typer(widgets.app, name="widget")
-app.add_typer(favourites.app, name="fav")
-app.add_typer(auth.app, name="auth")
-app.add_typer(tray.app, name="tray")
-app.add_typer(config.app, name="config")
-app.add_typer(gui.app, name="gui")
+log = get(__name__)
+
+COMMAND_NAMES = {
+    "widgets": "widget",
+    "favourites": "fav",
+}
+
+# Dynamic module loading
+for module_info in pkgutil.iter_modules(commands.__path__):
+    module_name = module_info.name
+
+    if module_name.startswith("_"):
+        continue
+
+    module = importlib.import_module(f"{commands.__name__}.{module_name}")
+
+    if not hasattr(module, "app"):
+        continue
+
+    command_name = COMMAND_NAMES.get(module_name, module_name)
+
+    app.add_typer(module.app, name=command_name)
 
 
 @app.callback()
-def root(verbose: bool = typer.Option(False, "--verbose", "-v")) -> None:
-    raise NotImplementedError
+def root(
+    ctx: typer.Context,
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    setup(verbose=verbose)
+
+    if ctx.invoked_subcommand:
+        log.info("running command: %s", ctx.invoked_subcommand)
+    else:
+        log.info("running dps")
 
 
 def main() -> None:

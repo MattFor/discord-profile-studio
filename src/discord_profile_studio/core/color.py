@@ -15,6 +15,7 @@ def to_int(value: str) -> int:
     return int(s, 16)
 
 
+# Why not just return the value, don't need # at the front, we can just do that in the gui
 def to_hex(value: int) -> str:
     if not (0 <= value <= MAX_COLOR):
         msg = f"Invalid color value: {value}"

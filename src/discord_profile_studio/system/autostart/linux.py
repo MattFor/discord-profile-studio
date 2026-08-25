@@ -59,4 +59,5 @@ class LinuxAutostart(AutostartBackend):
             "Terminal=false",
             "X-GNOME-Autostart-enabled=true",
         ]
+
         return "\n".join(lines) + "\n"
