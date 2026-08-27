@@ -1,9 +1,8 @@
 import tkinter as tk
 from threading import Thread
 
-import typer
 import pystray
-
+import typer
 from PIL import Image, ImageDraw
 
 app = typer.Typer(no_args_is_help=False, invoke_without_command=True)

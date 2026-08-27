@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import time
-import logging
 import functools
-
+import logging
+import time
 from collections.abc import Callable
 from typing import Any, ParamSpec, TypeVar, overload
 
