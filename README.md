@@ -30,9 +30,9 @@ editor. Windows and Linux compatible.
 MattFor
 
 - [ ] Cli
-- [ ] Auth
-- [ ] Secrets
-- [ ] Secrets storage
+- [x] Auth
+- [x] Secrets
+- [x] Secrets storage
 - [ ] Widget section
 
 Kamil

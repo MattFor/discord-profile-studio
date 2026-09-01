@@ -4,13 +4,19 @@ from rich.table import Table
 console = Console()
 
 
+# Time for some fancy printing!!!
 def table(title: str, columns: list[str]) -> Table:
-    raise NotImplementedError
+    result = Table(title=title, title_justify="left", header_style="bold")
+
+    for column in columns:
+        result.add_column(column)
+
+    return result
 
 
 def error(message: str) -> None:
-    raise NotImplementedError
+    console.print(f"[bold red]error[/bold red] {message}")
 
 
 def success(message: str) -> None:
-    raise NotImplementedError
+    console.print(f"[bold green]ok[/bold green] {message}")
