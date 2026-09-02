@@ -18,7 +18,3 @@ class TrayBackend(ABC):
 
     @abstractmethod
     def stop(self) -> None: ...
-
-
-def select() -> TrayBackend:
-    raise NotImplementedError

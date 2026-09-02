@@ -1,20 +1,9 @@
-from pathlib import Path
-
-from discord_profile_studio.tray.backends.base import TrayBackend
-from discord_profile_studio.tray.menu import TrayMenu
+from discord_profile_studio.system.platform import is_windows
+from discord_profile_studio.tray.backends._pystray import PystrayBackend
 
 
-class WindowsTray(TrayBackend):
+class WindowsTray(PystrayBackend):
     name = "windows"
 
     def available(self) -> bool:
-        raise NotImplementedError
-
-    def run(self, menu: TrayMenu, icon_path: Path, tooltip: str) -> None:
-        raise NotImplementedError
-
-    def update(self, menu: TrayMenu, icon_path: Path, tooltip: str) -> None:
-        raise NotImplementedError
-
-    def stop(self) -> None:
-        raise NotImplementedError
+        return is_windows()
