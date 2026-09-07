@@ -94,7 +94,7 @@ def test_from_dict_accepts_an_epoch_expiry():
 def test_from_dict_treats_a_naive_expiry_as_utc():
     token = Token.from_dict({"access_token": ACCESS, "expires_at": "2026-08-31T12:00:00"})
 
-    assert token.expires_at == NOW
+    assert token.expires_at == datetime(2026, 8, 31, 12, 0, tzinfo=UTC)
 
 
 @pytest.mark.parametrize("data", [[], "token", 1, None])
