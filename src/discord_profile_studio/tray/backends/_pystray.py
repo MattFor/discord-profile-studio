@@ -4,11 +4,14 @@ from pathlib import Path
 from typing import Any
 
 import pystray
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from discord_profile_studio.core.paths import APP_NAME
 from discord_profile_studio.tray.backends.base import TrayBackend
 from discord_profile_studio.tray.menu import TrayMenu, TrayMenuItem
+
+PLACEHOLDER_SIZE = 64
+PLACEHOLDER_COLOR = (88, 101, 242, 255)  # blurple
 
 
 def _callback(action: Callable[[], None] | None) -> Callable[[object, object], None] | None:
@@ -40,6 +43,7 @@ def _entry(item: TrayMenuItem) -> pystray.MenuItem:
             item.label,
             _convert(item.submenu),
             enabled=item.enabled,
+            visible=item.visible,
         )
 
     return pystray.MenuItem(
@@ -47,6 +51,8 @@ def _entry(item: TrayMenuItem) -> pystray.MenuItem:
         _callback(item.action),
         checked=_checked(state=item.checked),
         enabled=item.enabled,
+        default=item.default,
+        visible=item.visible,
     )
 
 
@@ -55,9 +61,20 @@ def _convert(items: list[TrayMenuItem]) -> pystray.Menu:
 
 
 def _image(path: Path) -> Image.Image:
+    if not path.is_file():
+        return _placeholder()
     with Image.open(path) as source:
         return source.convert("RGBA")
 
+
+def _placeholder() -> Image.Image:
+    image = Image.new("RGBA", (PLACEHOLDER_SIZE, PLACEHOLDER_SIZE), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    draw.ellipse(
+        (8, 8, PLACEHOLDER_SIZE - 8, PLACEHOLDER_SIZE - 8),
+        fill=PLACEHOLDER_COLOR,
+    )
+    return image
 
 
 class PystrayBackend(TrayBackend, ABC):

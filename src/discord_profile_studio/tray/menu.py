@@ -10,6 +10,8 @@ class TrayMenuItem:
     enabled: bool = True
     separator: bool = False
     submenu: "list[TrayMenuItem] | None" = None
+    default: bool = False
+    visible: bool = True
 
 
 @dataclass(slots=True)
