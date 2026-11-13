@@ -37,7 +37,7 @@ def test_platform_members_compare_as_strings():
         ("", Platform.UNKNOWN),
     ],
 )
-def test_current_maps_sys_platform(monkeypatch: pytest.MonkeyPatch, raw, expected):
+def test_current_maps_sys_platform(monkeypatch: pytest.MonkeyPatch, raw: str, expected: Platform):
     monkeypatch.setattr(sys, "platform", raw)
 
     assert current() is expected
@@ -128,14 +128,18 @@ def test_desktop_session_returns_empty_when_all_blank(monkeypatch: pytest.Monkey
         ("", False),
     ],
 )
-def test_has_display_off_linux_ignores_environment(monkeypatch: pytest.MonkeyPatch, raw, expected):
+def test_has_display_off_linux_ignores_environment(
+    monkeypatch: pytest.MonkeyPatch,
+    raw: str,
+    expected: bool,  # noqa: FBT001
+):
     monkeypatch.setattr(sys, "platform", raw)
 
     assert has_display() is expected
 
 
 @pytest.mark.parametrize("name", ["WAYLAND_DISPLAY", "DISPLAY"])
-def test_has_display_on_linux_accepts_either_server(monkeypatch: pytest.MonkeyPatch, name):
+def test_has_display_on_linux_accepts_either_server(monkeypatch: pytest.MonkeyPatch, name: str):
     monkeypatch.setattr(sys, "platform", "linux")
     monkeypatch.setenv(name, ":0")
 

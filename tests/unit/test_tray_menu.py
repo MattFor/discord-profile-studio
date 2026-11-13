@@ -3,15 +3,15 @@ import pytest
 from discord_profile_studio.tray.menu import TrayMenu, TrayMenuItem
 
 
-def item(label, submenu=None):
+def item(label: str, submenu: list[TrayMenuItem] | None = None) -> TrayMenuItem:
     return TrayMenuItem(label=label, submenu=submenu)
 
 
-def sep():
+def sep() -> TrayMenuItem:
     return TrayMenuItem(separator=True)
 
 
-def labels(menu):
+def labels(menu: TrayMenu) -> list[str]:
     return [entry.label or "|" for entry in menu.items]
 
 
@@ -86,8 +86,10 @@ def test_rebuild_drops_item_whose_submenu_is_all_separators():
 def test_rebuild_keeps_item_with_valid_submenu():
     menu = TrayMenu(items=[item("More", submenu=[item("A")])])
     menu.rebuild()
+    submenu = menu.items[0].submenu
     assert labels(menu) == ["More"]
-    assert [entry.label for entry in menu.items[0].submenu] == ["A"]
+    assert submenu is not None
+    assert [entry.label for entry in submenu] == ["A"]
 
 
 def test_rebuild_normalises_nested_submenu():
@@ -95,6 +97,7 @@ def test_rebuild_normalises_nested_submenu():
     menu = TrayMenu(items=[item("More", submenu=inner)])
     menu.rebuild()
     cleaned = menu.items[0].submenu
+    assert cleaned is not None
     assert [entry.label or "|" for entry in cleaned] == ["A", "|", "B"]
 
 
@@ -131,7 +134,7 @@ def test_rebuild_does_not_mutate_original_items():
         ([item("A"), sep(), sep(), item("B")], ["A", "|", "B"]),
     ],
 )
-def test_rebuild_table(given, expected):
+def test_rebuild_table(given: list[TrayMenuItem], expected: list[str]):
     menu = TrayMenu(items=given)
     menu.rebuild()
     assert labels(menu) == expected

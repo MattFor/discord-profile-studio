@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import json
 import stat
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -12,17 +15,20 @@ from discord_profile_studio.core.paths import (
     write_private,
 )
 
+if TYPE_CHECKING:
+    from pathlib import Path
+
 
 @pytest.fixture
-def settings_path(tmp_path):
+def settings_path(tmp_path: Path) -> Path:
     return tmp_path / "config" / "settings.json"
 
 
-def test_load_falls_back_to_defaults(settings_path):
+def test_load_falls_back_to_defaults(settings_path: Path):
     assert load(settings_path) == defaults()
 
 
-def test_save_and_load_roundtrip(settings_path):
+def test_save_and_load_roundtrip(settings_path: Path):
     settings = Settings(account="main", token_backend="encrypted-file", close_to_tray=False)
 
     save(settings, settings_path)
@@ -30,19 +36,19 @@ def test_save_and_load_roundtrip(settings_path):
     assert load(settings_path) == settings
 
 
-def test_save_writes_readable_json(settings_path):
+def test_save_writes_readable_json(settings_path: Path):
     save(Settings(), settings_path)
 
     assert json.loads(settings_path.read_text(encoding="utf-8")) == to_dict(Settings())
 
 
-def test_load_ignores_unknown_keys(settings_path):
+def test_load_ignores_unknown_keys(settings_path: Path):
     write_private(settings_path, json.dumps({"account": "main", "colour": "blurple"}))
 
     assert load(settings_path).account == "main"
 
 
-def test_load_ignores_values_of_the_wrong_type(settings_path):
+def test_load_ignores_values_of_the_wrong_type(settings_path: Path):
     write_private(settings_path, json.dumps({"close_to_tray": "yes", "account": "main"}))
     settings = load(settings_path)
 
@@ -51,7 +57,7 @@ def test_load_ignores_values_of_the_wrong_type(settings_path):
 
 
 @pytest.mark.parametrize("contents", ["not json", "[]", '"settings"'])
-def test_load_rejects_malformed_settings(settings_path, contents):
+def test_load_rejects_malformed_settings(settings_path: Path, contents: str):
     write_private(settings_path, contents)
 
     with pytest.raises(ConfigError):
@@ -59,14 +65,14 @@ def test_load_rejects_malformed_settings(settings_path, contents):
 
 
 @pytest.mark.posix
-def test_save_keeps_the_settings_private(settings_path):
+def test_save_keeps_the_settings_private(settings_path: Path):
     save(Settings(), settings_path)
 
     assert stat.S_IMODE(settings_path.stat().st_mode) == 0o600
     assert stat.S_IMODE(settings_path.parent.stat().st_mode) == 0o700
 
 
-def test_write_private_replaces_the_previous_contents(tmp_path):
+def test_write_private_replaces_the_previous_contents(tmp_path: Path):
     path = tmp_path / "notes.txt"
 
     write_private(path, "first")
@@ -76,13 +82,13 @@ def test_write_private_replaces_the_previous_contents(tmp_path):
     assert not (tmp_path / "notes.txt.tmp").exists()
 
 
-def test_write_private_accepts_bytes(tmp_path):
+def test_write_private_accepts_bytes(tmp_path: Path):
     path = write_private(tmp_path / "blob.bin", b"\x00\x01\x02")
 
     assert path.read_bytes() == b"\x00\x01\x02"
 
 
-def test_ensure_private_creates_the_parent(tmp_path):
+def test_ensure_private_creates_the_parent(tmp_path: Path):
     ensure_private(tmp_path / "nested" / "deeper" / "tokens.enc")
 
     assert (tmp_path / "nested" / "deeper").is_dir()
