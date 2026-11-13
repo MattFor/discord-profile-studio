@@ -8,6 +8,7 @@ from discord_profile_studio.models.favourite import Favourite
 PLATFORM_MARKERS = {
     "windows": (sys.platform == "win32", "requires Windows"),
     "linux": (sys.platform == "linux", "requires Linux"),
+    "macos": (sys.platform == "darwin", "requires macOS"),
     "posix": (sys.platform != "win32", "requires POSIX"),
 }
 
