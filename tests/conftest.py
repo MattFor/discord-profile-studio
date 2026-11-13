@@ -1,9 +1,19 @@
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import pytest
 
-from discord_profile_studio.models.favourite import Favourite
+from discord_profile_studio.models import (
+    ActivityType,
+    Button,
+    Favourite,
+    Presence,
+    TimestampMode,
+    Timestamps,
+    Widget,
+    WidgetKind,
+)
 
 PLATFORM_MARKERS = {
     "windows": (sys.platform == "win32", "requires Windows"),
@@ -21,7 +31,20 @@ def pytest_runtest_setup(item: pytest.Item) -> None:
 
 @pytest.fixture
 def favourite() -> Favourite:
-    raise NotImplementedError
+    moment = datetime(2026, 1, 2, 3, 4, 5)  # noqa: DTZ001
+    return Favourite(
+        name="Coding",
+        presence=Presence(
+            activity_type=ActivityType.WATCHING,
+            details="Writing tests",
+            timestamps=Timestamps(mode=TimestampMode.SINCE_START),
+            buttons=[Button(label="Repo", url="https://example.com")],
+        ),
+        widgets=[Widget(kind=WidgetKind.LINK, title="Docs")],
+        tags=["dev"],
+        created_at=moment,
+        updated_at=moment,
+    )
 
 
 @pytest.fixture

@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from dataclasses import fields
 from datetime import datetime
 from enum import Enum
 
@@ -205,3 +206,10 @@ def test_presences_differing_in_one_nested_field_are_not_equal():
     second.large_image.key = "logo"
 
     assert first != second
+
+
+@pytest.mark.parametrize("field_name", [f.name for f in fields(Favourite)])
+def test_favourite_fixture_differs_from_default_in_every_field(
+    favourite: Favourite, field_name: str
+):
+    assert getattr(favourite, field_name) != getattr(Favourite(), field_name)
