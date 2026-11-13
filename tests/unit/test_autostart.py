@@ -9,9 +9,6 @@ from discord_profile_studio.system.autostart.linux import DESKTOP_FILE, LinuxAut
 
 TEST_VALUE_NAME = "DPS-Test-DoNotUse"
 
-on_windows = pytest.mark.skipif(sys.platform != "win32", reason="requires Windows")
-on_linux = pytest.mark.skipif(sys.platform != "linux", reason="requires Linux")
-
 
 @pytest.fixture
 def linux_backend(tmp_path):
@@ -108,7 +105,6 @@ def test_linux_disable_twice_is_silent(linux_backend):
     assert not linux_backend.enabled()
 
 
-@on_linux
 @pytest.mark.linux
 def test_linux_default_directory_is_config_autostart():
     assert LinuxAutostart()._dir().parts[-2:] == (".config", "autostart")
@@ -126,7 +122,6 @@ def test_backend_rejects_unsupported_platform(monkeypatch, platform):
         backend()
 
 
-@on_windows
 @pytest.mark.windows
 def test_backend_returns_windows_on_win32(monkeypatch):
     from discord_profile_studio.system.autostart.windows import WindowsAutostart  # noqa: PLC0415
@@ -135,20 +130,17 @@ def test_backend_returns_windows_on_win32(monkeypatch):
     assert isinstance(backend(), WindowsAutostart)
 
 
-@on_windows
 @pytest.mark.windows
 def test_windows_enabled_is_false_without_value(windows_backend):
     assert not windows_backend.enabled()
 
 
-@on_windows
 @pytest.mark.windows
 def test_windows_enable_sets_enabled(windows_backend):
     windows_backend.enable(minimized=True)
     assert windows_backend.enabled()
 
 
-@on_windows
 @pytest.mark.windows
 def test_windows_disable_clears_enabled(windows_backend):
     windows_backend.enable(minimized=True)
@@ -156,14 +148,12 @@ def test_windows_disable_clears_enabled(windows_backend):
     assert not windows_backend.enabled()
 
 
-@on_windows
 @pytest.mark.windows
 def test_windows_disable_without_value_is_silent(windows_backend):
     windows_backend.disable()
     assert not windows_backend.enabled()
 
 
-@on_windows
 @pytest.mark.windows
 def test_windows_enable_writes_flag(windows_backend):
     import winreg  # noqa: PLC0415

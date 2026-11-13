@@ -1,5 +1,4 @@
 import stat
-import sys
 from datetime import UTC, datetime, timedelta
 
 import keyring
@@ -25,9 +24,6 @@ ACCESS = "aBcDeFgHiJkLmNoPqRsTuVwXyZ012345"
 REFRESH = "0123456789abcdefghijklmnopqrstuv"
 PASSPHRASE = "correct horse battery staple"
 OTHER_PASSPHRASE = "a different passphrase"
-
-on_posix = pytest.mark.skipif(sys.platform == "win32",
-                              reason="requires POSIX file modes")
 
 
 class MemoryKeyring(KeyringBackend):
@@ -135,7 +131,7 @@ def test_keyring_rejects_the_reserved_account_name(keyring_store):
         keyring_store.set(INDEX_KEY, make_token())
 
 
-@on_posix
+@pytest.mark.posix
 def test_encrypted_file_permissions(file_store, token_path):
     file_store.set("main", make_token())
 
@@ -143,7 +139,7 @@ def test_encrypted_file_permissions(file_store, token_path):
     assert stat.S_IMODE(token_path.parent.stat().st_mode) == 0o700
 
 
-@on_posix
+@pytest.mark.posix
 def test_encrypted_file_permissions_survive_a_rewrite(file_store, token_path):
     file_store.set("main", make_token())
     token_path.chmod(0o666)

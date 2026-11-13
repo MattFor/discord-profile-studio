@@ -1,6 +1,5 @@
 import json
 import stat
-import sys
 
 import pytest
 
@@ -12,8 +11,6 @@ from discord_profile_studio.core.paths import (
     token_file,
     write_private,
 )
-
-on_posix = pytest.mark.skipif(sys.platform == "win32", reason="requires POSIX file modes")
 
 
 @pytest.fixture
@@ -61,7 +58,7 @@ def test_load_rejects_malformed_settings(settings_path, contents):
         load(settings_path)
 
 
-@on_posix
+@pytest.mark.posix
 def test_save_keeps_the_settings_private(settings_path):
     save(Settings(), settings_path)
 
