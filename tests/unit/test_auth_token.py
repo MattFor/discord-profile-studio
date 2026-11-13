@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -10,16 +11,16 @@ REFRESH = "0123456789abcdefghijklmnopqrstuv"
 NOW = datetime(1970, 1, 1, 0, 0, tzinfo=UTC)
 
 
-def make_token(**overrides):
-    values = {
-        "kind": TokenKind.OAUTH,
-        "access_token": ACCESS,
-        "refresh_token": REFRESH,
-        "scopes": ["identify", "rpc"],
-        "expires_at": datetime.now(UTC) + timedelta(hours=1),
-    }
+def make_token(**overrides: object) -> Token:
+    base = Token(
+        kind=TokenKind.OAUTH,
+        access_token=ACCESS,
+        refresh_token=REFRESH,
+        scopes=["identify", "rpc"],
+        expires_at=datetime.now(UTC) + timedelta(hours=1),
+    )
 
-    return Token(**{**values, **overrides})
+    return replace(base, **overrides)
 
 
 def test_a_token_without_an_expiry_never_expires():
@@ -51,7 +52,7 @@ def test_an_empty_token_is_empty():
     ("kind", "expected"),
     [(TokenKind.BOT, f"Bot {ACCESS}"), (TokenKind.OAUTH, f"Bearer {ACCESS}")],
 )
-def test_header_uses_the_right_prefix(kind, expected):
+def test_header_uses_the_right_prefix(kind: TokenKind, expected: str):
     assert make_token(kind=kind).header == expected
 
 
@@ -62,7 +63,7 @@ def test_dict_roundtrip():
 
 
 @pytest.mark.parametrize("scopes", [None, [], ["identify"], ["identify", "rpc"]])
-def test_dict_roundtrip_keeps_the_scopes(scopes):
+def test_dict_roundtrip_keeps_the_scopes(scopes: list[str] | None):
     token = make_token(scopes=scopes, expires_at=NOW)
 
     assert Token.from_dict(token.to_dict()).scopes == scopes
@@ -98,7 +99,7 @@ def test_from_dict_treats_a_naive_expiry_as_utc():
 
 
 @pytest.mark.parametrize("data", [[], "token", 1, None])
-def test_from_dict_rejects_a_non_record(data):
+def test_from_dict_rejects_a_non_record(data: object):
     with pytest.raises(AuthError):
         Token.from_dict(data)
 
@@ -144,7 +145,7 @@ def test_from_response_rejects_a_payload_without_a_token():
 
 
 @pytest.mark.parametrize("data", [[], "token", None])
-def test_from_response_rejects_a_non_record(data):
+def test_from_response_rejects_a_non_record(data: object):
     with pytest.raises(AuthError):
         Token.from_response(data)
 

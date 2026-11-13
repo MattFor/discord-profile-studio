@@ -19,12 +19,12 @@ BOT_TOKEN = "MTIzNDU2Nzg5MDEyMzQ1Njc4.GaBcDe.abcdefghijklmnopqrstuvwxyz1234567"
 
 
 @pytest.fixture
-def salt():
+def salt() -> bytes:
     return new_salt()
 
 
 @pytest.fixture
-def key(salt):
+def key(salt: bytes) -> bytes:
     return derive_key(PASSPHRASE, salt, ITERATIONS)
 
 
@@ -36,11 +36,11 @@ def test_new_salt_is_random():
     assert new_salt() != new_salt()
 
 
-def test_derive_key_has_the_expected_size(key):
+def test_derive_key_has_the_expected_size(key: bytes):
     assert len(key) == KEY_BYTES
 
 
-def test_derive_key_is_deterministic(salt):
+def test_derive_key_is_deterministic(salt: bytes):
     assert derive_key(PASSPHRASE, salt, ITERATIONS) == derive_key(PASSPHRASE, salt, ITERATIONS)
 
 
@@ -50,44 +50,44 @@ def test_derive_key_depends_on_the_salt():
     )
 
 
-def test_derive_key_depends_on_the_passphrase(salt):
+def test_derive_key_depends_on_the_passphrase(salt: bytes):
     assert derive_key(PASSPHRASE, salt, ITERATIONS) != derive_key("other", salt, ITERATIONS)
 
 
-def test_derive_key_rejects_an_empty_passphrase(salt):
+def test_derive_key_rejects_an_empty_passphrase(salt: bytes):
     with pytest.raises(AuthError):
         derive_key("", salt, ITERATIONS)
 
 
 @pytest.mark.parametrize("size", [0, 8, 15, 17, 32])
-def test_derive_key_rejects_a_wrong_salt_size(size):
+def test_derive_key_rejects_a_wrong_salt_size(size: int):
     with pytest.raises(AuthError):
         derive_key(PASSPHRASE, b"0" * size, ITERATIONS)
 
 
-def test_derive_key_rejects_a_useless_iteration_count(salt):
+def test_derive_key_rejects_a_useless_iteration_count(salt: bytes):
     with pytest.raises(AuthError):
         derive_key(PASSPHRASE, salt, 0)
 
 
-def test_encrypt_roundtrip(key):
+def test_encrypt_roundtrip(key: bytes):
     assert decrypt(encrypt(SECRET, key), key) == SECRET
 
 
-def test_encrypt_hides_the_plaintext(key):
+def test_encrypt_hides_the_plaintext(key: bytes):
     assert SECRET not in encrypt(SECRET, key)
 
 
-def test_encrypt_uses_a_fresh_nonce(key):
+def test_encrypt_uses_a_fresh_nonce(key: bytes):
     assert encrypt(SECRET, key) != encrypt(SECRET, key)
 
 
-def test_decrypt_rejects_another_key(key, salt):
+def test_decrypt_rejects_another_key(key: bytes, salt: bytes):
     with pytest.raises(AuthError):
         decrypt(encrypt(SECRET, key), derive_key("other", salt, ITERATIONS))
 
 
-def test_decrypt_rejects_tampered_ciphertext(key):
+def test_decrypt_rejects_tampered_ciphertext(key: bytes):
     payload = bytearray(encrypt(SECRET, key))
     payload[-1] ^= 0xFF
 
@@ -95,7 +95,7 @@ def test_decrypt_rejects_tampered_ciphertext(key):
         decrypt(bytes(payload), key)
 
 
-def test_decrypt_rejects_a_tampered_nonce(key):
+def test_decrypt_rejects_a_tampered_nonce(key: bytes):
     payload = bytearray(encrypt(SECRET, key))
     payload[0] ^= 0xFF
 
@@ -104,13 +104,13 @@ def test_decrypt_rejects_a_tampered_nonce(key):
 
 
 @pytest.mark.parametrize("size", [0, 1, NONCE_BYTES])
-def test_decrypt_rejects_truncated_input(key, size):
+def test_decrypt_rejects_truncated_input(key: bytes, size: int):
     with pytest.raises(AuthError):
         decrypt(b"0" * size, key)
 
 
 @pytest.mark.parametrize("size", [0, 16, 31, 33])
-def test_encrypt_rejects_a_wrong_key_size(size):
+def test_encrypt_rejects_a_wrong_key_size(size: int):
     with pytest.raises(AuthError):
         encrypt(SECRET, b"0" * size)
 
@@ -146,7 +146,7 @@ def test_mask_honours_the_visible_count():
         f"the token is {BOT_TOKEN} apparently",
     ],
 )
-def test_scrub_removes_secrets(text):
+def test_scrub_removes_secrets(text: str):
     assert BOT_TOKEN not in scrub(text)
 
 

@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING, cast, final
 from urllib.parse import parse_qs, urlparse
 
 import httpx
@@ -16,6 +19,9 @@ from discord_profile_studio.auth.oauth import (
 from discord_profile_studio.auth.token import Token, TokenKind
 from discord_profile_studio.core.exceptions import AuthError
 
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
 CLIENT_ID = "123456789012345678"
 CLIENT_SECRET = "vErYs3cr3tCl13ntS3cr3t"
 REDIRECT_URI = "http://127.0.0.1:6420/callback"
@@ -32,14 +38,20 @@ PAYLOAD = {
 }
 
 
+@final
 class Recorder:
-    def __init__(self, status=200, payload=None, text=None):
+    def __init__(
+        self,
+        status: int = 200,
+        payload: Mapping[str, object] | None = None,
+        text: str | None = None,
+    ) -> None:
         self.status = status
         self.payload = payload if payload is not None else PAYLOAD
         self.text = text
-        self.calls = []
+        self.calls: list[tuple[str, dict[str, object]]] = []
 
-    def __call__(self, url, **kwargs):
+    def __call__(self, url: str, **kwargs: object) -> httpx.Response:
         self.calls.append((url, kwargs))
         request = httpx.Request("POST", url)
 
@@ -49,32 +61,32 @@ class Recorder:
         return httpx.Response(self.status, json=self.payload, request=request)
 
     @property
-    def data(self):
-        return self.calls[-1][1]["data"]
+    def data(self) -> dict[str, str]:
+        return cast("dict[str, str]", self.calls[-1][1]["data"])
 
 
 @pytest.fixture
-def flow():
+def flow() -> OAuthFlow:
     return OAuthFlow(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
 
 
 @pytest.fixture
-def post(monkeypatch):
+def post(monkeypatch: pytest.MonkeyPatch) -> Recorder:
     recorder = Recorder()
     monkeypatch.setattr(oauth.httpx, "post", recorder)
 
     return recorder
 
 
-def query_of(url):
+def query_of(url: str) -> dict[str, list[str]]:
     return parse_qs(urlparse(url).query)
 
 
-def test_authorize_url_points_at_discord(flow):
+def test_authorize_url_points_at_discord(flow: OAuthFlow):
     assert flow.authorize_url().startswith(AUTHORIZE_URL)
 
 
-def test_authorize_url_carries_the_client_and_redirect(flow):
+def test_authorize_url_carries_the_client_and_redirect(flow: OAuthFlow):
     query = query_of(flow.authorize_url())
 
     assert query["client_id"] == [CLIENT_ID]
@@ -82,19 +94,19 @@ def test_authorize_url_carries_the_client_and_redirect(flow):
     assert query["response_type"] == ["code"]
 
 
-def test_authorize_url_joins_the_scopes(flow):
+def test_authorize_url_joins_the_scopes(flow: OAuthFlow):
     assert query_of(flow.authorize_url(("identify", "rpc")))["scope"] == ["identify rpc"]
 
 
-def test_authorize_url_falls_back_to_the_default_scopes(flow):
+def test_authorize_url_falls_back_to_the_default_scopes(flow: OAuthFlow):
     assert query_of(flow.authorize_url(()))["scope"] == ["identify rpc"]
 
 
-def test_authorize_url_includes_the_state(flow):
+def test_authorize_url_includes_the_state(flow: OAuthFlow):
     assert query_of(flow.authorize_url(state="xyz"))["state"] == ["xyz"]
 
 
-def test_authorize_url_omits_an_empty_state(flow):
+def test_authorize_url_omits_an_empty_state(flow: OAuthFlow):
     assert "state" not in query_of(flow.authorize_url())
 
 
@@ -135,12 +147,12 @@ def test_extract_code_rejects_a_url_without_a_code():
 
 
 @pytest.mark.parametrize("answer", ["", "   "])
-def test_extract_code_rejects_nothing(answer):
+def test_extract_code_rejects_nothing(answer: str):
     with pytest.raises(AuthError):
         extract_code(answer)
 
 
-def test_exchange_posts_to_the_token_endpoint(flow, post):
+def test_exchange_posts_to_the_token_endpoint(flow: OAuthFlow, post: Recorder):
     flow.exchange(CODE)
 
     assert post.calls[-1][0] == TOKEN_URL
@@ -152,7 +164,7 @@ def test_exchange_posts_to_the_token_endpoint(flow, post):
 
 
 @pytest.mark.usefixtures("post")
-def test_exchange_returns_a_token(flow):
+def test_exchange_returns_a_token(flow: OAuthFlow):
     token = flow.exchange(CODE)
 
     assert token.kind is TokenKind.OAUTH
@@ -168,7 +180,7 @@ def test_exchange_needs_a_client_secret():
         OAuthFlow(CLIENT_ID, "", REDIRECT_URI).exchange(CODE)
 
 
-def test_refresh_posts_the_refresh_token(flow, post):
+def test_refresh_posts_the_refresh_token(flow: OAuthFlow, post: Recorder):
     flow.refresh(Token(refresh_token=REFRESH))
 
     assert post.data["grant_type"] == "refresh_token"
@@ -176,12 +188,12 @@ def test_refresh_posts_the_refresh_token(flow, post):
 
 
 @pytest.mark.usefixtures("post")
-def test_refresh_needs_a_refresh_token(flow):
+def test_refresh_needs_a_refresh_token(flow: OAuthFlow):
     with pytest.raises(AuthError):
         flow.refresh(Token(access_token=ACCESS))
 
 
-def test_refresh_keeps_the_old_refresh_token(flow, monkeypatch):
+def test_refresh_keeps_the_old_refresh_token(flow: OAuthFlow, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(oauth.httpx, "post", Recorder(payload={"access_token": ACCESS}))
 
     refreshed = flow.refresh(Token(refresh_token=REFRESH, scopes=["identify"]))
@@ -190,20 +202,20 @@ def test_refresh_keeps_the_old_refresh_token(flow, monkeypatch):
     assert refreshed.scopes == ["identify"]
 
 
-def test_revoke_posts_the_access_token(flow, post):
+def test_revoke_posts_the_access_token(flow: OAuthFlow, post: Recorder):
     flow.revoke(Token(access_token=ACCESS))
 
     assert post.calls[-1][0] == REVOKE_URL
     assert post.data["token"] == ACCESS
 
 
-def test_revoke_ignores_an_empty_token(flow, post):
+def test_revoke_ignores_an_empty_token(flow: OAuthFlow, post: Recorder):
     flow.revoke(Token())
 
     assert post.calls == []
 
 
-def test_a_rejected_request_becomes_an_auth_error(flow, monkeypatch):
+def test_a_rejected_request_becomes_an_auth_error(flow: OAuthFlow, monkeypatch: pytest.MonkeyPatch):
     rejection = Recorder(status=400, payload={"error": "invalid_grant"})
     monkeypatch.setattr(oauth.httpx, "post", rejection)
 
@@ -211,7 +223,9 @@ def test_a_rejected_request_becomes_an_auth_error(flow, monkeypatch):
         flow.exchange(CODE)
 
 
-def test_a_rejected_request_does_not_leak_the_code(flow, monkeypatch):
+def test_a_rejected_request_does_not_leak_the_code(
+    flow: OAuthFlow, monkeypatch: pytest.MonkeyPatch
+):
     body = f'{{"error": "invalid_grant", "code": "{CODE}"}}'
     monkeypatch.setattr(oauth.httpx, "post", Recorder(status=400, text=body))
 
@@ -221,8 +235,8 @@ def test_a_rejected_request_does_not_leak_the_code(flow, monkeypatch):
     assert CODE not in str(caught.value)
 
 
-def test_a_network_failure_becomes_an_auth_error(flow, monkeypatch):
-    def explode(_url, **_kwargs):
+def test_a_network_failure_becomes_an_auth_error(flow: OAuthFlow, monkeypatch: pytest.MonkeyPatch):
+    def explode(_url: str, **_kwargs: object) -> httpx.Response:
         message = "connection refused"
 
         raise httpx.ConnectError(message)
@@ -233,7 +247,9 @@ def test_a_network_failure_becomes_an_auth_error(flow, monkeypatch):
         flow.exchange(CODE)
 
 
-def test_a_non_json_response_becomes_an_auth_error(flow, monkeypatch):
+def test_a_non_json_response_becomes_an_auth_error(
+    flow: OAuthFlow, monkeypatch: pytest.MonkeyPatch
+):
     monkeypatch.setattr(oauth.httpx, "post", Recorder(text="<html>nope</html>"))
 
     with pytest.raises(AuthError):
@@ -241,7 +257,7 @@ def test_a_non_json_response_becomes_an_auth_error(flow, monkeypatch):
 
 
 @pytest.mark.usefixtures("post")
-def test_an_expiring_token_knows_when_it_expires(flow):
+def test_an_expiring_token_knows_when_it_expires(flow: OAuthFlow):
     before = datetime.now(UTC)
     token = flow.exchange(CODE)
 
