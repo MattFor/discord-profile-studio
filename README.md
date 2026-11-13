@@ -1,7 +1,7 @@
 # Discord Profile Studio
 
 A CLI-driven Tkinter studio for designing Discord Rich Presence and profile widgets, with a live preview beside the
-editor. Windows and Linux compatible.
+editor. Windows, Linux and macOS compatible.
 
 ## Roadmap
 
