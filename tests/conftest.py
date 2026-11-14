@@ -1,5 +1,5 @@
 import sys
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -31,7 +31,7 @@ def pytest_runtest_setup(item: pytest.Item) -> None:
 
 @pytest.fixture
 def favourite() -> Favourite:
-    moment = datetime(2026, 1, 2, 3, 4, 5)  # noqa: DTZ001
+    moment = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
     return Favourite(
         name="Coding",
         presence=Presence(

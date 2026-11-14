@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import fields
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 
 import pytest
@@ -77,12 +77,41 @@ def test_favourite_defaults_to_unnamed_default_presence_without_widgets_or_tags(
 
 
 def test_favourite_timestamps_are_taken_at_construction():
-    before = datetime.now()  # noqa: DTZ005
+    before = datetime.now(UTC)
     favourite = Favourite()
-    after = datetime.now()  # noqa: DTZ005
+    after = datetime.now(UTC)
 
     assert before <= favourite.created_at <= after
     assert before <= favourite.updated_at <= after
+
+
+def test_favourite_timestamps_default_to_aware_utc():
+    favourite = Favourite()
+
+    assert favourite.created_at.tzinfo is UTC
+    assert favourite.updated_at.tzinfo is UTC
+
+
+def test_fresh_favourites_always_have_updated_at_equal_to_created_at():
+    favourites = [Favourite() for _ in range(10_000)]
+
+    assert all(f.updated_at == f.created_at for f in favourites)
+
+
+def test_favourite_with_only_created_at_given_copies_it_to_updated_at():
+    moment = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
+
+    assert Favourite(created_at=moment).updated_at == moment
+
+
+def test_favourite_keeps_explicit_updated_at():
+    created = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
+    updated = datetime(2026, 2, 3, 4, 5, 6, tzinfo=UTC)
+
+    favourite = Favourite(created_at=created, updated_at=updated)
+
+    assert favourite.created_at == created
+    assert favourite.updated_at == updated
 
 
 def test_profile_defaults_to_version_one_with_no_favourites():
