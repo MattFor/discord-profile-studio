@@ -168,6 +168,8 @@ def test_mutable_default_is_a_fresh_object_per_instance(
             {
                 "NONE": "none",
                 "SINCE_START": "since_start",
+                "SINCE_CONNECT": "since_connect",
+                "SINCE_UPDATE": "since_update",
                 "LOCAL_TIME": "local_time",
                 "CUSTOM": "custom",
             },

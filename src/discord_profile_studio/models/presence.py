@@ -12,6 +12,8 @@ class ActivityType(IntEnum):
 class TimestampMode(StrEnum):
     NONE = "none"
     SINCE_START = "since_start"
+    SINCE_CONNECT = "since_connect"
+    SINCE_UPDATE = "since_update"
     LOCAL_TIME = "local_time"
     CUSTOM = "custom"
 

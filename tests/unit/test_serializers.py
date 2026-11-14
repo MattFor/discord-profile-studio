@@ -104,6 +104,13 @@ def test_round_trip_rebuilds_enum_members_not_raw_values(favourite: Favourite):
     assert type(loaded.widgets[0].kind) is WidgetKind
 
 
+@pytest.mark.parametrize("mode", list(TimestampMode), ids=lambda mode: mode.name)
+def test_every_timestamp_mode_is_read_back_as_the_same_member(mode: TimestampMode):
+    written = json.loads(json.dumps(presence_to_dict(Presence(timestamps=Timestamps(mode=mode)))))
+
+    assert presence_from_dict(written).timestamps.mode is mode
+
+
 def test_presence_and_widget_survive_their_own_round_trip(favourite: Favourite):
     widget = Widget(kind=WidgetKind.MEDIA, options={"mode": "compact"}, enabled=False)
 
