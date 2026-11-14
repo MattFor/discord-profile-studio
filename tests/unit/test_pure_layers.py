@@ -22,6 +22,7 @@ print("\\n".join(sorted({name.split(".")[0] for name in sys.modules})))
     [
         pytest.param("discord_profile_studio.models", id="models"),
         pytest.param("discord_profile_studio.core", id="core"),
+        pytest.param("discord_profile_studio.storage", id="storage"),
     ],
 )
 def test_importing_pure_layer_loads_no_gui_tray_or_discord_module(package: str):

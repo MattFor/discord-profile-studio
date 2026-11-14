@@ -138,6 +138,15 @@ def test_missing_required_key_raises_with_its_path(key: str):
         favourite_from_dict(document)
 
 
+@pytest.mark.parametrize("name", ["", " ", "\t\n", "\u00a0"])
+def test_blank_name_raises_with_its_path(name: str):
+    document = version_1_document()
+    document["name"] = name
+
+    with pytest.raises(StorageError, match=re.escape("favourite.name: name is blank")):
+        favourite_from_dict(document)
+
+
 @pytest.mark.parametrize(
     "path",
     [

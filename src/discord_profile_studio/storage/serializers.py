@@ -83,7 +83,7 @@ def favourite_to_dict(favourite: Favourite) -> dict[str, Any]:
 def favourite_from_dict(data: object, *, where: str = "favourite") -> Favourite:
     obj = _object(data, Favourite, where, required=_FAVOURITE_REQUIRED)
     return Favourite(
-        name=_value(obj, "name", str, "", where),
+        name=_name(obj, where),
         presence=presence_from_dict(obj.get("presence", {}), where=f"{where}.presence"),
         widgets=_list(obj, "widgets", widget_from_dict, where),
         tags=_list(obj, "tags", _string, where),
@@ -188,6 +188,13 @@ def _optional_int(obj: dict[str, Any], key: str, where: str) -> int | None:
     if value is None:
         return None
     return _value(obj, key, int, 0, where)
+
+
+def _name(obj: dict[str, Any], where: str) -> str:
+    name = _value(obj, "name", str, "", where)
+    if not name.strip():
+        _fail(f"{where}.name", "name is blank", name)
+    return name
 
 
 def _string(data: object, *, where: str) -> str:

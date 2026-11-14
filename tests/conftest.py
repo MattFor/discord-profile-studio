@@ -49,4 +49,4 @@ def favourite() -> Favourite:
 
 @pytest.fixture
 def store(tmp_path: Path) -> Path:
-    raise NotImplementedError
+    return tmp_path / "favourites.json"
