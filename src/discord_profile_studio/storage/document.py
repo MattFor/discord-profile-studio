@@ -1,5 +1,6 @@
 import json
 import reprlib
+from collections.abc import Collection
 from typing import Any, cast
 
 from discord_profile_studio.core.exceptions import StorageError
@@ -22,6 +23,15 @@ def to_text(favourites: list[Favourite]) -> str:
         msg = f"refusing to save, the file would not load back: {e}"
         raise StorageError(msg) from e
     return text
+
+
+def free_name(name: str, taken: Collection[str]) -> str:
+    if name not in taken:
+        return name
+    n = 1
+    while f"{name} ({n})" in taken:
+        n += 1
+    return f"{name} ({n})"
 
 
 def from_text(text: str) -> list[Favourite]:

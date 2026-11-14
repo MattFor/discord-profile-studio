@@ -149,3 +149,19 @@ def test_loads_reads_timestamps_back_as_aware_utc(favourite: Favourite):
 
     assert loaded.created_at == datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
     assert loaded.created_at.utcoffset() is not None
+
+
+def test_free_name_returns_the_name_when_it_is_not_taken():
+    assert document.free_name("Coding", ["Gaming"]) == "Coding"
+
+
+def test_free_name_adds_the_first_free_number():
+    assert document.free_name("Coding", ["Coding"]) == "Coding (1)"
+
+
+def test_free_name_skips_numbers_already_taken():
+    assert document.free_name("Coding", ["Coding", "Coding (1)", "Coding (2)"]) == "Coding (3)"
+
+
+def test_free_name_compares_names_exactly():
+    assert document.free_name("coding", ["Coding"]) == "coding"
