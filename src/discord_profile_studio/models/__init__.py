@@ -6,6 +6,7 @@ from discord_profile_studio.models.presence import (
     Button,
     Party,
     Presence,
+    StatusDisplay,
     TimestampMode,
     Timestamps,
 )
@@ -21,6 +22,7 @@ __all__ = [
     "Party",
     "Presence",
     "Profile",
+    "StatusDisplay",
     "TimestampMode",
     "Timestamps",
     "Widget",

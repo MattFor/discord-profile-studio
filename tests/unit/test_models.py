@@ -15,6 +15,7 @@ from discord_profile_studio.models import (
     Party,
     Presence,
     Profile,
+    StatusDisplay,
     TimestampMode,
     Timestamps,
     Widget,
@@ -26,19 +27,26 @@ def test_presence_text_fields_default_to_empty_strings():
     presence = Presence()
 
     assert presence.client_id == ""
+    assert presence.name == ""
     assert presence.details == ""
+    assert presence.details_url == ""
     assert presence.state == ""
+    assert presence.state_url == ""
 
 
 def test_presence_activity_type_defaults_to_playing():
     assert Presence().activity_type is ActivityType.PLAYING
 
 
+def test_presence_status_display_defaults_to_activity_name():
+    assert Presence().status_display is StatusDisplay.NAME
+
+
 def test_presence_nested_fields_default_to_empty_objects():
     presence = Presence()
 
-    assert presence.large_image == Asset(key="", text="")
-    assert presence.small_image == Asset(key="", text="")
+    assert presence.large_image == Asset(key="", text="", url="")
+    assert presence.small_image == Asset(key="", text="", url="")
     assert presence.party == Party(size=0, maximum=0)
     assert presence.timestamps == Timestamps(mode=TimestampMode.NONE, start=None, end=None)
     assert presence.buttons == []
@@ -162,6 +170,11 @@ def test_mutable_default_is_a_fresh_object_per_instance(
             ActivityType,
             {"PLAYING": 0, "LISTENING": 2, "WATCHING": 3, "COMPETING": 5},
             id="ActivityType",
+        ),
+        pytest.param(
+            StatusDisplay,
+            {"NAME": 0, "STATE": 1, "DETAILS": 2},
+            id="StatusDisplay",
         ),
         pytest.param(
             TimestampMode,

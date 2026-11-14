@@ -6,9 +6,11 @@ import pytest
 
 from discord_profile_studio.models import (
     ActivityType,
+    Asset,
     Button,
     Favourite,
     Presence,
+    StatusDisplay,
     TimestampMode,
     Timestamps,
     Widget,
@@ -35,8 +37,13 @@ def favourite() -> Favourite:
     return Favourite(
         name="Coding",
         presence=Presence(
+            name="Studio",
             activity_type=ActivityType.WATCHING,
+            status_display=StatusDisplay.DETAILS,
             details="Writing tests",
+            details_url="https://example.com/details",
+            state_url="https://example.com/state",
+            large_image=Asset(key="logo", url="https://example.com/logo.png"),
             timestamps=Timestamps(mode=TimestampMode.SINCE_START),
             buttons=[Button(label="Repo", url="https://example.com")],
         ),

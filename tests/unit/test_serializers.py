@@ -10,6 +10,7 @@ from discord_profile_studio.models import (
     ActivityType,
     Favourite,
     Presence,
+    StatusDisplay,
     TimestampMode,
     Timestamps,
     Widget,
@@ -33,11 +34,15 @@ def version_1_document() -> dict[str, Any]:
         "name": "Coding",
         "presence": {
             "client_id": "",
+            "name": "Studio",
             "activity_type": 3,
+            "status_display": 2,
             "details": "Writing tests",
+            "details_url": "https://example.com/details",
             "state": "",
-            "large_image": {"key": "", "text": ""},
-            "small_image": {"key": "", "text": ""},
+            "state_url": "https://example.com/state",
+            "large_image": {"key": "logo", "text": "", "url": "https://example.com/logo.png"},
+            "small_image": {"key": "", "text": "", "url": ""},
             "party": {"size": 0, "maximum": 0},
             "timestamps": {"mode": "since_start", "start": None, "end": None},
             "buttons": [{"label": "Repo", "url": "https://example.com"}],
@@ -100,6 +105,7 @@ def test_round_trip_rebuilds_enum_members_not_raw_values(favourite: Favourite):
     loaded = favourite_from_dict(json.loads(json.dumps(favourite_to_dict(favourite))))
 
     assert type(loaded.presence.activity_type) is ActivityType
+    assert type(loaded.presence.status_display) is StatusDisplay
     assert type(loaded.presence.timestamps.mode) is TimestampMode
     assert type(loaded.widgets[0].kind) is WidgetKind
 
@@ -181,6 +187,8 @@ def test_unknown_key_raises_with_its_path(path: str):
         pytest.param("presence.timestamps.start", "1", id="str-for-optional-int"),
         pytest.param("presence.activity_type", "3", id="str-for-int-enum"),
         pytest.param("presence.activity_type", 3.0, id="float-for-int-enum"),
+        pytest.param("presence.status_display", "2", id="str-for-status-display"),
+        pytest.param("presence.large_image.url", None, id="null-for-asset-url"),
         pytest.param("presence", [], id="list-for-object"),
         pytest.param("presence.buttons", {}, id="object-for-list"),
         pytest.param("presence.buttons[0]", "Repo", id="str-for-button"),
@@ -210,6 +218,7 @@ def test_favourite_that_is_not_an_object_raises():
     ("path", "value"),
     [
         ("presence.activity_type", 1),
+        ("presence.status_display", 3),
         ("presence.timestamps.mode", "later"),
         ("widgets[0].kind", "banner"),
     ],

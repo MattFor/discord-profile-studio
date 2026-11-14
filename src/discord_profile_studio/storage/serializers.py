@@ -13,6 +13,7 @@ from discord_profile_studio.models.presence import (
     Button,
     Party,
     Presence,
+    StatusDisplay,
     TimestampMode,
     Timestamps,
 )
@@ -29,6 +30,7 @@ class _Reader[T](Protocol):
 def presence_to_dict(presence: Presence) -> dict[str, Any]:
     data = asdict(presence)
     data["activity_type"] = presence.activity_type.value
+    data["status_display"] = presence.status_display.value
     data["timestamps"]["mode"] = presence.timestamps.mode.value
     return data
 
@@ -38,9 +40,13 @@ def presence_from_dict(data: object, *, where: str = "presence") -> Presence:
     default = Presence()
     return Presence(
         client_id=_value(obj, "client_id", str, default.client_id, where),
+        name=_value(obj, "name", str, default.name, where),
         activity_type=_enum(obj, "activity_type", ActivityType, default.activity_type, where),
+        status_display=_enum(obj, "status_display", StatusDisplay, default.status_display, where),
         details=_value(obj, "details", str, default.details, where),
+        details_url=_value(obj, "details_url", str, default.details_url, where),
         state=_value(obj, "state", str, default.state, where),
+        state_url=_value(obj, "state_url", str, default.state_url, where),
         large_image=_nested(obj, "large_image", _asset, Asset, where),
         small_image=_nested(obj, "small_image", _asset, Asset, where),
         party=_nested(obj, "party", _party, Party, where),
@@ -155,6 +161,7 @@ def _asset(data: object, *, where: str) -> Asset:
     return Asset(
         key=_value(obj, "key", str, "", where),
         text=_value(obj, "text", str, "", where),
+        url=_value(obj, "url", str, "", where),
     )
 
 
