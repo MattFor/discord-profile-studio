@@ -38,10 +38,10 @@ def test_to_int_ignores_case(input_value: str):
 @pytest.mark.parametrize(
     ("input_value", "expected"),
     [
-        (BLURPLE, "5865f2"),
+        (BLURPLE, "5865F2"),
         (0, "000000"),
-        (MAX_COLOR, "ffffff"),
-        (255, "0000ff"),
+        (MAX_COLOR, "FFFFFF"),
+        (255, "0000FF"),
     ],
 )
 def test_to_hex_formats_int(input_value: int, expected: str):
@@ -56,8 +56,8 @@ def test_to_hex_has_six_characters():
     assert len(to_hex(BLURPLE)) == 6
 
 
-def test_to_hex_is_lowercase():
-    assert to_hex(MAX_COLOR).islower()
+def test_to_hex_is_uppercase():
+    assert to_hex(MAX_COLOR).isupper()
 
 
 @pytest.mark.parametrize("input_value", [-1, MAX_COLOR + 1, 999_999_999])
@@ -71,11 +71,11 @@ def test_roundtrip_int_to_hex_to_int(input_number: int):
     assert to_int(to_hex(input_number)) == input_number
 
 
-@pytest.mark.parametrize("input_value", ["000000", "5865f2", "ffffff"])
+@pytest.mark.parametrize("input_value", ["000000", "5865F2", "FFFFFF"])
 def test_roundtrip_hex_to_int_to_hex(input_value: str):
     assert to_hex(to_int(input_value)) == input_value
 
 
-@pytest.mark.parametrize("input_value", ["#000000", "#5865f2", "#ffffff"])
+@pytest.mark.parametrize("input_value", ["#000000", "#5865F2", "#FFFFFF"])
 def test_to_int_accepts_prefixed_form_of_to_hex_output(input_value: str):
     assert to_hex(to_int(input_value)) == input_value.removeprefix("#")

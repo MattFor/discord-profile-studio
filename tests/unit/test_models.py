@@ -5,7 +5,7 @@ from enum import Enum
 
 import pytest
 
-from discord_profile_studio.core.color import to_int
+from discord_profile_studio.core.color import to_hex
 from discord_profile_studio.models import (
     Account,
     ActivityType,
@@ -63,8 +63,8 @@ def test_widget_defaults_to_enabled_custom_kind_with_empty_content():
     assert widget.options == {}
 
 
-def test_widget_default_accent_parses_as_discord_blurple():
-    assert to_int(Widget().accent) == 0x5865F2
+def test_widget_default_accent_is_discord_blurple_in_to_hex_spelling():
+    assert Widget().accent == "#" + to_hex(0x5865F2)
 
 
 def test_favourite_defaults_to_unnamed_default_presence_without_widgets_or_tags():

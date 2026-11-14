@@ -54,21 +54,21 @@ def test_label_follows_value(picker: ColorPicker):
 def test_choose_sets_value(picker: ColorPicker, mocker: MockerFixture):
     mocker.patch(f"{MODULE}.colorchooser.askcolor", return_value=((255, 0, 0), "#FF0000"))
     picker.choose()
-    assert picker.value.get() == "#ff0000"
+    assert picker.value.get() == "#FF0000"
 
 
 @pytest.mark.gui
 def test_choose_normalises_case(picker: ColorPicker, mocker: MockerFixture):
-    mocker.patch(f"{MODULE}.colorchooser.askcolor", return_value=((88, 101, 242), "#5865F2"))
+    mocker.patch(f"{MODULE}.colorchooser.askcolor", return_value=((88, 101, 242), "#5865f2"))
     picker.choose()
-    assert picker.value.get() == "#5865f2"
+    assert picker.value.get() == "#5865F2"
 
 
 @pytest.mark.gui
 def test_choose_adds_hash_prefix(picker: ColorPicker, mocker: MockerFixture):
     mocker.patch(f"{MODULE}.colorchooser.askcolor", return_value=((88, 101, 242), "5865F2"))
     picker.choose()
-    assert picker.value.get() == "#5865f2"
+    assert picker.value.get() == "#5865F2"
 
 
 @pytest.mark.gui
@@ -91,7 +91,7 @@ def test_choose_opens_dialog_with_current_colour(picker: ColorPicker, mocker: Mo
 def test_choose_updates_swatch(picker: ColorPicker, mocker: MockerFixture):
     mocker.patch(f"{MODULE}.colorchooser.askcolor", return_value=((0, 255, 0), "#00FF00"))
     picker.choose()
-    assert picker.swatch.cget("bg") == "#00ff00"
+    assert picker.swatch.cget("bg") == "#00FF00"
 
 
 @pytest.mark.gui
