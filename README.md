@@ -1,9 +1,18 @@
 # Discord Profile Studio
 
-A CLI-driven Tkinter studio for designing Discord Rich Presence and profile widgets, with a live preview beside the
-editor. Windows, Linux and macOS compatible.
+[![CI](https://github.com/MattFor/discord-profile-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/MattFor/discord-profile-studio/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Roadmap
+A CLI-driven Tkinter studio for designing Discord Rich Presence and profile widgets, with a live preview beside the
+editor.
+
+## Requirements
+
+Windows, Linux and macOS compatible.
+
+## Contributing
+
+### Roadmap
 
 - [x] Lay out the package, CLI entry point, and packaging metadata.
 - [x] Define the presence, widget, account, and favourite data models.
@@ -25,7 +34,7 @@ editor. Windows, Linux and macOS compatible.
 - [ ] Cover the models, storage, token store, and RPC layers with tests in CI.
 - [ ] Publish the first release to PyPI.
 
-## Tasks
+### Tasks
 
 MattFor
 
