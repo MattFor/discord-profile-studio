@@ -1,21 +1,25 @@
 from dataclasses import dataclass, field
-from enum import StrEnum
+from enum import IntEnum
 
 
-class WidgetKind(StrEnum):
-    STATUS = "status"
-    MEDIA = "media"
-    ACTIVITY = "activity"
-    LINK = "link"
-    CUSTOM = "custom"
+# Discord's wire codes for a dynamic value's "type"
+class FieldType(IntEnum):
+    TEXT = 1
+    NUMBER = 2
+    IMAGE = 3
 
 
 @dataclass(slots=True)
+class WidgetField:
+    name: str = ""
+    kind: FieldType = FieldType.TEXT
+    # Text, a number written out, or an image URL
+    value: str = ""
+
+
+# One Developer Portal application, its layout lives on Discord and only the values live here
+@dataclass(slots=True)
 class Widget:
-    kind: WidgetKind = WidgetKind.CUSTOM
-    title: str = ""
-    body: str = ""
-    icon: str = ""
-    accent: str = "#5865F2"
-    enabled: bool = True
-    options: dict[str, str] = field(default_factory=dict)
+    application_id: str = ""
+    name: str = ""
+    fields: list[WidgetField] = field(default_factory=list)

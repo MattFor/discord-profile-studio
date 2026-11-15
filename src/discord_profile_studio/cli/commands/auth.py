@@ -34,7 +34,7 @@ def _passphrase(store: EncryptedFileStore) -> str:
     return typer.prompt("New store passphrase", hide_input=True, confirmation_prompt=True)
 
 
-def _store(backend: str | None) -> TokenStore:
+def unlocked_store(backend: str | None) -> TokenStore:
     store = open_store(backend)
 
     if isinstance(store, EncryptedFileStore) and store.locked:
@@ -69,7 +69,7 @@ def login(
 
     try:
         url = flow.authorize_url(scopes, state=state)
-        store = _store(backend)
+        store = unlocked_store(backend)
 
         console.print("Approve the request in a browser:")
         console.print(url)
@@ -98,7 +98,7 @@ def logout(
     redirect_uri: str = typer.Option(DEFAULT_REDIRECT_URI, "--redirect-uri"),
 ) -> None:
     try:
-        store = _store(backend)
+        store = unlocked_store(backend)
         token = store.get(account)
 
         if revoke:
@@ -123,7 +123,7 @@ def status(backend: str | None = BACKEND) -> None:
     console.print(health)
 
     try:
-        store = _store(backend)
+        store = unlocked_store(backend)
         accounts = store.accounts()
 
         if not accounts:
@@ -154,7 +154,7 @@ def status(backend: str | None = BACKEND) -> None:
 @app.command("list")
 def list_accounts(backend: str | None = BACKEND) -> None:
     try:
-        store = _store(backend)
+        store = unlocked_store(backend)
 
         for account in store.accounts():
             console.print(account)

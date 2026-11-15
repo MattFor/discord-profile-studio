@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 
 from discord_profile_studio.core.exceptions import StorageError
-from discord_profile_studio.models import Favourite, Widget
+from discord_profile_studio.models import Favourite
 from discord_profile_studio.storage import document
 from discord_profile_studio.storage.migrations import SCHEMA_VERSION
 
@@ -49,13 +49,6 @@ def test_dumps_refuses_a_naive_timestamp(favourite: Favourite):
         document.to_text([favourite])
 
     assert "favourites[0].updated_at: timestamp has no time zone" in str(caught.value)
-
-
-def test_dumps_refuses_an_invalid_accent(favourite: Favourite):
-    favourite.widgets = [Widget(accent="not a colour")]
-
-    with pytest.raises(StorageError, match=re.escape("favourites[0].widgets[0].accent")):
-        document.to_text([favourite])
 
 
 def test_dumps_refuses_a_blank_name(favourite: Favourite):
