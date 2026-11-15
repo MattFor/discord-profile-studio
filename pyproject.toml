@@ -16,6 +16,7 @@ classifiers = [
     "Environment :: Console",
     "Environment :: X11 Applications",
     "Intended Audience :: End Users/Desktop",
+    "Operating System :: MacOS",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
@@ -175,6 +176,7 @@ markers = [
     "tray: requires a system tray",
     "windows: windows-only behaviour",
     "linux: linux-only behaviour",
+    "macos: macos-only behaviour",
     "posix: requires POSIX semantics (file modes)",
 ]
 

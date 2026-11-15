@@ -3,11 +3,10 @@ from __future__ import annotations
 import functools
 import logging
 import time
-from collections.abc import Callable
-from typing import Any, ParamSpec, TypeVar, overload
+from typing import TYPE_CHECKING, Any, overload
 
-R = TypeVar("R")
-P = ParamSpec("P")
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class _ElapsedFormatter(logging.Formatter):
@@ -63,18 +62,18 @@ def get(name: str) -> logging.Logger:
 
 
 @overload
-def logged(func: Callable[P, R]) -> Callable[P, R]: ...
+def logged[**P, R](func: Callable[P, R]) -> Callable[P, R]: ...
 
 
 @overload
-def logged(
+def logged[**P, R](
     *,
     logger: logging.Logger | None = None,
     level: int = logging.INFO,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]: ...
 
 
-def logged(
+def logged[**P, R](
     func: Callable[P, R] | None = None,
     *,
     logger: logging.Logger | None = None,
