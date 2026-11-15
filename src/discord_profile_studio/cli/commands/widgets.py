@@ -14,19 +14,15 @@ from discord_profile_studio.core.paths import favourites_file
 from discord_profile_studio.models.favourite import Favourite
 from discord_profile_studio.models.widget import Widget, WidgetField
 from discord_profile_studio.storage.repository import FavouriteRepository
-from discord_profile_studio.widgets.api import WidgetApi, authorize_url
-from discord_profile_studio.widgets.spec import from_payload, problems
+from discord_profile_studio.widgets.api import WidgetApi, authorize_url, push_all, token_account
+from discord_profile_studio.widgets.spec import fit, from_payload, problems
 
 app = typer.Typer(no_args_is_help=True)
 
 
-def _account(application_id: str) -> str:
-    return f"widget:{application_id}"
-
-
 def _api(store: TokenStore, application_id: str) -> WidgetApi:
     try:
-        return WidgetApi(store.get(_account(application_id)))
+        return WidgetApi(store.get(token_account(application_id)))
     except TokenNotFoundError:
         fail(f"no bot token for application {application_id}, store one with: dps widget token")
 
@@ -58,7 +54,7 @@ def token(backend: str | None = BACKEND) -> None:
         application = WidgetApi(bot).application()
         store = unlocked_store(backend)
 
-        store.set(_account(application.id), bot)
+        store.set(token_account(application.id), bot)
     except StudioError as e:
         fail(str(e))
 
@@ -105,16 +101,12 @@ def add(
         current = next((w for w in stored.widgets if w.application_id == application_id), None)
 
         # Re-adding refreshes the fields from the live config and keeps values that still fit
-        known = {field.name: field for field in current.fields} if current else {}
+        known = current.fields if current else []
 
         if sample is not None:
-            known |= {field.name: field for field in _sample(sample)}
+            known = [*known, *_sample(sample)]
 
-        fields = [
-            known[name] if name in known and known[name].kind is kind else WidgetField(name, kind)
-            for name, kind in wanted.items()
-        ]
-        widget = Widget(application_id, api.application().name, fields)
+        widget = Widget(application_id, api.application().name, fit(known, wanted))
 
         if current is None:
             stored.widgets.append(widget)
@@ -180,22 +172,10 @@ def push(favourite: str, backend: str | None = BACKEND) -> None:
             fail(f"{favourite!r} has no widgets, add one with: dps widget add")
 
         store = unlocked_store(backend)
-        ready: list[tuple[Widget, WidgetApi, list[WidgetField]]] = []
-        issues: list[str] = []
 
-        # Check every widget before sending any, so a favourite never goes out half applied
-        for widget in stored.widgets:
-            api = _api(store, widget.application_id)
-            wanted = api.config(widget.application_id).fields
-
-            issues += [f"{widget.name}: {problem}" for problem in problems(widget.fields, wanted)]
-            ready.append((widget, api, [field for field in widget.fields if field.name in wanted]))
-
-        if issues:
-            fail("not pushed, fix these first:\n" + "\n".join(issues))
-
-        for widget, api, fields in ready:
-            api.push(widget.application_id, api.application().owner_id, fields)
-            success(f"Pushed {widget.name}")
+        push_all(stored.widgets, lambda application_id: _api(store, application_id))
     except StudioError as e:
         fail(str(e))
+
+    for widget in stored.widgets:
+        success(f"Pushed {widget.name}")

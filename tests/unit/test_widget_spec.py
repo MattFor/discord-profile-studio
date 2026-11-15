@@ -6,7 +6,7 @@ import pytest
 
 from discord_profile_studio.core.exceptions import WidgetError
 from discord_profile_studio.models import FieldType, WidgetField
-from discord_profile_studio.widgets.spec import from_payload, problems, spec, to_payload
+from discord_profile_studio.widgets.spec import fit, from_payload, problems, spec, to_payload
 from tests.conftest import WIDGET_CONFIG
 
 TEXT, NUMBER, IMAGE = FieldType.TEXT, FieldType.NUMBER, FieldType.IMAGE
@@ -57,6 +57,26 @@ def test_spec_refuses_a_key_shown_as_two_types():
 def test_spec_refuses_user_data_without_a_key(key: object):
     with pytest.raises(WidgetError, match="a user data field has no key"):
         spec(config_with(data(key, "text")))
+
+
+def test_fit_keeps_values_that_still_match_and_adds_the_rest():
+    fields = [
+        WidgetField("rank", TEXT, "Gold"),
+        WidgetField("level", TEXT, "7"),
+        WidgetField("gone", TEXT, "x"),
+    ]
+
+    assert fit(fields, WANTED) == [
+        WidgetField("rank", TEXT, "Gold"),
+        WidgetField("level", NUMBER, ""),
+        WidgetField("cover", IMAGE, ""),
+    ]
+
+
+def test_fit_lets_a_later_value_win():
+    fields = [WidgetField("rank", TEXT, "stored"), WidgetField("rank", TEXT, "sample")]
+
+    assert fit(fields, {"rank": TEXT}) == [WidgetField("rank", TEXT, "sample")]
 
 
 def test_problems_is_empty_when_every_field_fits():

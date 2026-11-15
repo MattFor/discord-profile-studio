@@ -1,4 +1,4 @@
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any, cast
 from urllib.parse import urlencode
@@ -9,8 +9,8 @@ from discord_profile_studio import __version__
 from discord_profile_studio.auth.redaction import scrub
 from discord_profile_studio.auth.token import Token
 from discord_profile_studio.core.exceptions import WidgetError
-from discord_profile_studio.models.widget import WidgetField
-from discord_profile_studio.widgets.spec import Spec, spec, to_payload
+from discord_profile_studio.models.widget import Widget, WidgetField
+from discord_profile_studio.widgets.spec import Spec, problems, spec, to_payload
 
 API = "https://discord.com/api/v10"
 # The identity endpoint has only been seen working on v9
@@ -21,6 +21,10 @@ USER_AGENT = f"DiscordBot (https://github.com/MattFor/discord-profile-studio, {_
 TIMEOUT = 15.0
 IDENTITY_SCOPE = "sdk.social_layer_presence"
 NOT_AUTHORIZED = 50025
+
+
+def token_account(application_id: str) -> str:
+    return f"widget:{application_id}"
 
 
 def authorize_url(application_id: str) -> str:
@@ -123,6 +127,26 @@ class WidgetApi:
         except ValueError as e:
             msg = "Discord returned a response that is not JSON"
             raise WidgetError(msg) from e
+
+
+def push_all(widgets: list[Widget], api_for: Callable[[str], WidgetApi]) -> None:
+    ready: list[tuple[Widget, WidgetApi, list[WidgetField]]] = []
+    issues: list[str] = []
+
+    # Check every widget before sending any, so a favourite never goes out half applied
+    for widget in widgets:
+        api = api_for(widget.application_id)
+        wanted = api.config(widget.application_id).fields
+
+        issues += [f"{widget.name}: {problem}" for problem in problems(widget.fields, wanted)]
+        ready.append((widget, api, [field for field in widget.fields if field.name in wanted]))
+
+    if issues:
+        msg = "not pushed, fix these first:\n" + "\n".join(issues)
+        raise WidgetError(msg)
+
+    for widget, api, fields in ready:
+        api.push(widget.application_id, api.application().owner_id, fields)
 
 
 def _explain(response: httpx.Response, hints: Mapping[int, str]) -> str:

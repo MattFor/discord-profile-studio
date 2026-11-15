@@ -5,6 +5,13 @@ from typing import Any
 
 import typer
 
+from discord_profile_studio.cli.console import fail
+from discord_profile_studio.core.exceptions import StudioError
+from discord_profile_studio.core.paths import favourites_file
+from discord_profile_studio.gui.app import Application
+from discord_profile_studio.gui.state import AppState
+from discord_profile_studio.storage.repository import FavouriteRepository
+
 app = typer.Typer(no_args_is_help=False, invoke_without_command=True)
 
 
@@ -64,44 +71,16 @@ def _launch(
     minimized: bool,
     tray: bool,
 ) -> None:
-    root = tk.Tk()
-    root.title("Discord Profile Studio")
-    root.geometry("700x450")
-    root.minsize(500, 300)
+    state = AppState()
 
-    favourite_var = tk.StringVar(value=favourite or "No favourite selected")
+    if favourite:
+        try:
+            state.set_current(FavouriteRepository(favourites_file()).get(favourite))
+        except StudioError as e:
+            fail(str(e))
 
-    frame = tk.Frame(root, padx=24, pady=24)
-    frame.pack(fill="both", expand=True)
-
-    title = tk.Label(
-        frame,
-        text="Discord Profile Studio",
-        font=("TkDefaultFont", 18, "bold"),
-    )
-    title.pack(pady=(10, 4))
-
-    favourite_label = tk.Label(
-        frame,
-        text="Favourite:",
-    )
-    favourite_label.pack()
-
-    favourite_value = tk.Label(
-        frame,
-        textvariable=favourite_var,
-        font=("TkDefaultFont", 12, "bold"),
-    )
-    favourite_value.pack(pady=(4, 20))
-
-    status_var = tk.StringVar(value="Ready")
-
-    status = tk.Label(
-        frame,
-        textvariable=status_var,
-        fg="gray",
-    )
-    status.pack(side="bottom")
+    root = Application(state)
+    root.build()
 
     tray_icon: Any = None
 
@@ -109,11 +88,9 @@ def _launch(
         root.deiconify()
         root.lift()
         root.focus_force()
-        status_var.set("Ready")
 
     def hide() -> None:
         root.withdraw()
-        status_var.set("Running in tray")
 
     def quit_app() -> None:
         nonlocal tray_icon

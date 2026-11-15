@@ -7,7 +7,7 @@ import pytest
 from typer.testing import CliRunner, Result
 
 from discord_profile_studio.cli import app
-from discord_profile_studio.cli.commands import favourites as favourites_cli
+from discord_profile_studio.cli.commands import favourites as favourites_cli, gui as gui_cli
 from discord_profile_studio.storage.repository import FavouriteRepository
 
 CUSTOMRP = Path(__file__).parent.parent / "fixtures" / "customrp"
@@ -18,6 +18,7 @@ runner = CliRunner()
 @pytest.fixture(autouse=True)
 def repository(store: Path, monkeypatch: pytest.MonkeyPatch) -> FavouriteRepository:
     monkeypatch.setattr(favourites_cli, "favourites_file", lambda: store)
+    monkeypatch.setattr(gui_cli, "favourites_file", lambda: store)
     return FavouriteRepository(store)
 
 
@@ -166,3 +167,10 @@ def test_export_keeps_an_existing_file_unless_forced(tmp_path: Path):
 
     assert dps("fav", "export", "Coding", str(target), "--force").exit_code == 0
     assert '"Coding"' in target.read_text()
+
+
+def test_gui_with_an_unknown_favourite_fails_before_opening_a_window():
+    result = dps("gui", "--favourite", "Nope")
+
+    assert result.exit_code == 1
+    assert "no favourite named 'Nope'" in result.output

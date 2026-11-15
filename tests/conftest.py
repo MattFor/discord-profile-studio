@@ -5,6 +5,8 @@ from pathlib import Path
 import httpx
 import pytest
 
+from discord_profile_studio.auth.token import Token, TokenKind
+from discord_profile_studio.core.exceptions import TokenNotFoundError
 from discord_profile_studio.models import (
     ActivityType,
     Asset,
@@ -18,10 +20,11 @@ from discord_profile_studio.models import (
     Widget,
     WidgetField,
 )
-from discord_profile_studio.widgets.api import API, IDENTITY_API
+from discord_profile_studio.widgets.api import API, IDENTITY_API, token_account
 
 WIDGET_APP = "1234567890"
 WIDGET_OWNER = "42"
+WIDGET_TOKEN = Token(kind=TokenKind.BOT, access_token="bot-secret-token")
 
 # Shape inferred from the Widget Identity Creator, see widgets/spec.py
 WIDGET_CONFIG = {
@@ -94,6 +97,22 @@ def favourite() -> Favourite:
 @pytest.fixture
 def store(tmp_path: Path) -> Path:
     return tmp_path / "favourites.json"
+
+
+class MemoryStore:
+    name = "memory"
+
+    def __init__(self) -> None:
+        self.tokens: dict[str, Token] = {token_account(WIDGET_APP): WIDGET_TOKEN}
+
+    def get(self, account: str) -> Token:
+        try:
+            return self.tokens[account]
+        except KeyError as e:
+            raise TokenNotFoundError(account) from e
+
+    def set(self, account: str, token: Token) -> None:
+        self.tokens[account] = token
 
 
 class FakeDiscord:

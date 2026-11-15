@@ -5,35 +5,17 @@ import httpx
 import pytest
 from typer.testing import CliRunner, Result
 
-from discord_profile_studio.auth.token import Token, TokenKind
+from discord_profile_studio.auth.token import TokenKind
 from discord_profile_studio.cli import app
 from discord_profile_studio.cli.commands import widgets as widgets_cli
-from discord_profile_studio.core.exceptions import TokenNotFoundError
 from discord_profile_studio.models import Favourite, FieldType, Widget, WidgetField
 from discord_profile_studio.storage.repository import FavouriteRepository
-from discord_profile_studio.widgets.api import API
-from tests.conftest import WIDGET_APP, FakeDiscord
+from discord_profile_studio.widgets.api import API, token_account
+from tests.conftest import WIDGET_APP, FakeDiscord, MemoryStore
 
-ACCOUNT = f"widget:{WIDGET_APP}"
-BOT = Token(kind=TokenKind.BOT, access_token="bot-secret-token")
+ACCOUNT = token_account(WIDGET_APP)
 
 runner = CliRunner()
-
-
-class MemoryStore:
-    name = "memory"
-
-    def __init__(self) -> None:
-        self.tokens: dict[str, Token] = {ACCOUNT: BOT}
-
-    def get(self, account: str) -> Token:
-        try:
-            return self.tokens[account]
-        except KeyError as e:
-            raise TokenNotFoundError(account) from e
-
-    def set(self, account: str, token: Token) -> None:
-        self.tokens[account] = token
 
 
 @pytest.fixture(autouse=True)

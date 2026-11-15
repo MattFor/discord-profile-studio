@@ -40,6 +40,16 @@ def spec(config: object) -> Spec:
     return found
 
 
+def fit(fields: list[WidgetField], wanted: Spec) -> list[WidgetField]:
+    # Later entries win, so a sample listed after stored values overrides them
+    known = {field.name: field for field in fields}
+
+    return [
+        known[name] if name in known and known[name].kind is kind else WidgetField(name, kind)
+        for name, kind in wanted.items()
+    ]
+
+
 def problems(fields: list[WidgetField], wanted: Spec) -> list[str]:
     given = {field.name: field for field in fields}
     found: list[str] = []
