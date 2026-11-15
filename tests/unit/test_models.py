@@ -1,11 +1,11 @@
 from collections.abc import Callable
 from dataclasses import fields
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 
 import pytest
 
-from discord_profile_studio.core.color import to_int
+from discord_profile_studio.core.color import to_hex
 from discord_profile_studio.models import (
     Account,
     ActivityType,
@@ -15,6 +15,7 @@ from discord_profile_studio.models import (
     Party,
     Presence,
     Profile,
+    StatusDisplay,
     TimestampMode,
     Timestamps,
     Widget,
@@ -26,19 +27,26 @@ def test_presence_text_fields_default_to_empty_strings():
     presence = Presence()
 
     assert presence.client_id == ""
+    assert presence.name == ""
     assert presence.details == ""
+    assert presence.details_url == ""
     assert presence.state == ""
+    assert presence.state_url == ""
 
 
 def test_presence_activity_type_defaults_to_playing():
     assert Presence().activity_type is ActivityType.PLAYING
 
 
+def test_presence_status_display_defaults_to_activity_name():
+    assert Presence().status_display is StatusDisplay.NAME
+
+
 def test_presence_nested_fields_default_to_empty_objects():
     presence = Presence()
 
-    assert presence.large_image == Asset(key="", text="")
-    assert presence.small_image == Asset(key="", text="")
+    assert presence.large_image == Asset(key="", text="", url="")
+    assert presence.small_image == Asset(key="", text="", url="")
     assert presence.party == Party(size=0, maximum=0)
     assert presence.timestamps == Timestamps(mode=TimestampMode.NONE, start=None, end=None)
     assert presence.buttons == []
@@ -63,8 +71,8 @@ def test_widget_defaults_to_enabled_custom_kind_with_empty_content():
     assert widget.options == {}
 
 
-def test_widget_default_accent_parses_as_discord_blurple():
-    assert to_int(Widget().accent) == 0x5865F2
+def test_widget_default_accent_is_discord_blurple_in_to_hex_spelling():
+    assert Widget().accent == "#" + to_hex(0x5865F2)
 
 
 def test_favourite_defaults_to_unnamed_default_presence_without_widgets_or_tags():
@@ -77,12 +85,41 @@ def test_favourite_defaults_to_unnamed_default_presence_without_widgets_or_tags(
 
 
 def test_favourite_timestamps_are_taken_at_construction():
-    before = datetime.now()  # noqa: DTZ005
+    before = datetime.now(UTC)
     favourite = Favourite()
-    after = datetime.now()  # noqa: DTZ005
+    after = datetime.now(UTC)
 
     assert before <= favourite.created_at <= after
     assert before <= favourite.updated_at <= after
+
+
+def test_favourite_timestamps_default_to_aware_utc():
+    favourite = Favourite()
+
+    assert favourite.created_at.tzinfo is UTC
+    assert favourite.updated_at.tzinfo is UTC
+
+
+def test_fresh_favourites_always_have_updated_at_equal_to_created_at():
+    favourites = [Favourite() for _ in range(10_000)]
+
+    assert all(f.updated_at == f.created_at for f in favourites)
+
+
+def test_favourite_with_only_created_at_given_copies_it_to_updated_at():
+    moment = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
+
+    assert Favourite(created_at=moment).updated_at == moment
+
+
+def test_favourite_keeps_explicit_updated_at():
+    created = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
+    updated = datetime(2026, 2, 3, 4, 5, 6, tzinfo=UTC)
+
+    favourite = Favourite(created_at=created, updated_at=updated)
+
+    assert favourite.created_at == created
+    assert favourite.updated_at == updated
 
 
 def test_profile_defaults_to_version_one_with_no_favourites():
@@ -135,10 +172,17 @@ def test_mutable_default_is_a_fresh_object_per_instance(
             id="ActivityType",
         ),
         pytest.param(
+            StatusDisplay,
+            {"NAME": 0, "STATE": 1, "DETAILS": 2},
+            id="StatusDisplay",
+        ),
+        pytest.param(
             TimestampMode,
             {
                 "NONE": "none",
                 "SINCE_START": "since_start",
+                "SINCE_CONNECT": "since_connect",
+                "SINCE_UPDATE": "since_update",
                 "LOCAL_TIME": "local_time",
                 "CUSTOM": "custom",
             },

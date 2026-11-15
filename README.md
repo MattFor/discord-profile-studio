@@ -6,12 +6,12 @@ editor. Windows, Linux and macOS compatible.
 ## Roadmap
 
 - [x] Lay out the package, CLI entry point, and packaging metadata.
-- [ ] Define the presence, widget, account, and favourite data models.
+- [x] Define the presence, widget, account, and favourite data models.
 - [ ] Resolve per-platform config, data, cache, and runtime paths.
-- [ ] Read and write favourites to a versioned JSON store.
+- [x] Read and write favourites to a versioned JSON store.
 - [ ] Store tokens in the OS keyring with an encrypted local file as fallback.
 - [ ] Add the OAuth2 sign-in flow and token refresh.
-- [ ] Import existing CustomRP presets and settings into favourites.
+- [x] Import existing CustomRP presets and settings into favourites.
 - [ ] Connect to Discord over IPC and push a presence payload.
 - [ ] Wire up the CLI commands for presence, widgets, favourites, and auth.
 - [ ] Build the Tkinter window with the editor on the left and the preview on the right.

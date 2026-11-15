@@ -12,14 +12,23 @@ class ActivityType(IntEnum):
 class TimestampMode(StrEnum):
     NONE = "none"
     SINCE_START = "since_start"
+    SINCE_CONNECT = "since_connect"
+    SINCE_UPDATE = "since_update"
     LOCAL_TIME = "local_time"
     CUSTOM = "custom"
+
+
+class StatusDisplay(IntEnum):
+    NAME = 0
+    STATE = 1
+    DETAILS = 2
 
 
 @dataclass(slots=True)
 class Asset:
     key: str = ""
     text: str = ""
+    url: str = ""
 
 
 @dataclass(slots=True)
@@ -44,9 +53,13 @@ class Timestamps:
 @dataclass(slots=True)
 class Presence:
     client_id: str = ""
+    name: str = ""
     activity_type: ActivityType = ActivityType.PLAYING
+    status_display: StatusDisplay = StatusDisplay.NAME
     details: str = ""
+    details_url: str = ""
     state: str = ""
+    state_url: str = ""
     large_image: Asset = field(default_factory=Asset)
     small_image: Asset = field(default_factory=Asset)
     party: Party = field(default_factory=Party)

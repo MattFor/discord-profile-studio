@@ -79,7 +79,7 @@ def write_private(path: Path, data: str | bytes) -> Path:
 
     # Text / Bin
     if isinstance(data, str):
-        temporary.write_text(data, encoding="utf-8")
+        temporary.write_text(data, encoding="utf-8", newline="\n")
     else:
         temporary.write_bytes(data)
 

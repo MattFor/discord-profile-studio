@@ -88,6 +88,12 @@ def test_write_private_accepts_bytes(tmp_path: Path):
     assert path.read_bytes() == b"\x00\x01\x02"
 
 
+def test_write_private_writes_text_with_lf_line_endings_on_every_os(tmp_path: Path):
+    path = write_private(tmp_path / "notes.txt", "first\nsecond\n")
+
+    assert path.read_bytes() == b"first\nsecond\n"
+
+
 def test_ensure_private_creates_the_parent(tmp_path: Path):
     ensure_private(tmp_path / "nested" / "deeper" / "tokens.enc")
 

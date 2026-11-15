@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<Preset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <ID>111111111111111111</ID>
+  <Type>3</Type>
+  <Display>2</Display>
+  <Name>Preset Activity</Name>
+  <Details>Preset details</Details>
+  <DetailsURL>https://example.com/preset/details</DetailsURL>
+  <State>Preset state</State>
+  <StateURL>https://example.com/preset/state</StateURL>
+  <PartySize>2</PartySize>
+  <PartyMax>5</PartyMax>
+  <Timestamps>3</Timestamps>
+  <CustomTimestamp>2026-11-14T19:30:09.6034564+01:00</CustomTimestamp>
+  <CustomTimestampEndEnabled>true</CustomTimestampEndEnabled>
+  <CustomTimestampEnd>2063-12-28T19:30:09</CustomTimestampEnd>
+  <LargeKey>preset_large_key</LargeKey>
+  <LargeText>Preset large text</LargeText>
+  <LargeURL>https://example.com/preset/large</LargeURL>
+  <SmallKey>preset_small_key</SmallKey>
+  <SmallText>Preset small text</SmallText>
+  <SmallURL>https://example.com/preset/small</SmallURL>
+  <Button1Text>Preset button one</Button1Text>
+  <Button1URL>https://example.com/preset/button1</Button1URL>
+  <Button2Text>Preset button two</Button2Text>
+  <Button2URL>https://example.com/preset/button2</Button2URL>
+</Preset>

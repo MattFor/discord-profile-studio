@@ -19,4 +19,4 @@ def to_hex(value: int) -> str:
     if not (0 <= value <= MAX_COLOR):
         msg = f"Invalid color value: {value}"
         raise ValidationError(msg)
-    return f"{value:06x}"
+    return f"{value:06X}"
