@@ -122,8 +122,7 @@ class EncryptedFileStore:
             return derive_key(passphrase, self._salt, self._iterations)
 
         key = derive_key(passphrase, envelope.salt, envelope.iterations)
-        decrypt(envelope.payload,
-                key)  # Correct stores verifies the passphrase is good
+        decrypt(envelope.payload, key)  # Correct stores verifies the passphrase is good
 
         self._salt = envelope.salt
         self._iterations = envelope.iterations
@@ -175,10 +174,7 @@ class EncryptedFileStore:
         if salt is None:
             raise StoreLockedError(LOCKED_MESSAGE)
 
-        payload = encrypt(
-            json.dumps({
-                "accounts": records
-            }).encode("utf-8"), key)
+        payload = encrypt(json.dumps({"accounts": records}).encode("utf-8"), key)
         envelope = {
             "version": VERSION,
             "kdf": KDF_NAME,
