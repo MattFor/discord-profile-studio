@@ -58,6 +58,4 @@ Combined
 
 ## License
 
-MIT [LICENSE](LICENSE)
-
-By [MattFor](https://github.com/MattFor), [KamilKlimas](https://github.com/KamilKlimas)
+MIT, see [LICENSE](LICENSE). By [MattFor](https://github.com/MattFor) and [KamilKlimas](https://github.com/KamilKlimas).
