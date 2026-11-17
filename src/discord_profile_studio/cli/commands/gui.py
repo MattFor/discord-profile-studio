@@ -1,9 +1,9 @@
 import tkinter as tk
+from collections.abc import Callable
 from threading import Thread
+from typing import Any
 
-import pystray
 import typer
-from PIL import Image, ImageDraw
 
 app = typer.Typer(no_args_is_help=False, invoke_without_command=True)
 
@@ -12,9 +12,13 @@ def _create_tray_icon(
     root: tk.Tk,
     *,
     favourite: str | None,
-    on_show: callable,
-    on_quit: callable,
-) -> pystray.Icon:
+    on_show: Callable[[], None],
+    on_quit: Callable[[], None],
+) -> Any:  # pystray.Icon is a runtime variable, not a type
+    # pystray needs a display at import time, which would break every dps command headless
+    import pystray  # noqa: PLC0415
+    from PIL import Image, ImageDraw  # noqa: PLC0415
+
     image = Image.new("RGBA", (64, 64), (20, 20, 20, 255))
     draw = ImageDraw.Draw(image)
     draw.rounded_rectangle(
@@ -33,12 +37,12 @@ def _create_tray_icon(
     menu = pystray.Menu(
         pystray.MenuItem(
             "Show",
-            lambda icon, item: root.after(0, on_show),
+            lambda: root.after(0, on_show),
             default=True,
         ),
         pystray.MenuItem(
             "Quit",
-            lambda icon, item: root.after(0, on_quit),
+            lambda: root.after(0, on_quit),
         ),
     )
 
@@ -99,7 +103,7 @@ def _launch(
     )
     status.pack(side="bottom")
 
-    tray_icon: pystray.Icon | None = None
+    tray_icon: Any = None
 
     def show() -> None:
         root.deiconify()
@@ -128,15 +132,16 @@ def _launch(
     root.protocol("WM_DELETE_WINDOW", on_close)
 
     if tray:
-        tray_icon = _create_tray_icon(
+        icon = _create_tray_icon(
             root,
             favourite=favourite,
             on_show=show,
             on_quit=quit_app,
         )
+        tray_icon = icon
 
         Thread(
-            target=tray_icon.run,
+            target=icon.run,
             daemon=True,
             name="dps-tray",
         ).start()

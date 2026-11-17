@@ -13,7 +13,7 @@ SECRET_KEYS = (
     "token",
     "code",
 )
-'''
+"""
 This is pretty interesting (painful)
 These are patterns used to find secrets to be redacted
 
@@ -22,7 +22,7 @@ These are patterns used to find secrets to be redacted
 3. math strings that *look like* discord tokens based on format
 
 All patterns put the secret in cap group 1 so the redaction code then knows what should be replaced
-'''
+"""
 PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
     (re.compile(r"\b(?:Bot|Bearer)\s+(\S+)", re.IGNORECASE), 1),
     (
@@ -54,14 +54,13 @@ def _redact(match: re.Match[str], group: int) -> str:
     offset = match.start()
     start, end = match.span(group)
 
-    return text[:start - offset] + mask(secret) + text[end - offset:]
+    return text[: start - offset] + mask(secret) + text[end - offset :]
 
 
 def scrub(text: str) -> str:
     result = text
 
     for pattern, group in PATTERNS:
-        result = pattern.sub(lambda match, index=group: _redact(match, index),
-                             result)
+        result = pattern.sub(lambda match, index=group: _redact(match, index), result)
 
     return result

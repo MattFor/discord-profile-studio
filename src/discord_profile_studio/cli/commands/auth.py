@@ -1,5 +1,3 @@
-from typing import NoReturn
-
 import typer
 
 from discord_profile_studio.auth.encrypted_store import EncryptedFileStore
@@ -18,19 +16,13 @@ from discord_profile_studio.auth.store import (
     open_store,
 )
 from discord_profile_studio.auth.token import Token
-from discord_profile_studio.cli.console import console, error, success, table
+from discord_profile_studio.cli.console import console, fail, success, table
 from discord_profile_studio.cli.options import BACKEND
 from discord_profile_studio.core import config
 from discord_profile_studio.core.exceptions import StudioError
 from discord_profile_studio.core.paths import token_file
 
 app = typer.Typer(no_args_is_help=True)
-
-
-def _fail(message: str) -> NoReturn:
-    error(message)
-
-    raise typer.Exit(1)
 
 
 def _passphrase(store: EncryptedFileStore) -> str:
@@ -93,7 +85,7 @@ def login(
         store.set(account, token)
         success(f"Stored a token for {account!r} in the {store.name} backend")
     except StudioError as e:
-        _fail(str(e))
+        fail(str(e))
 
 
 @app.command()
@@ -118,7 +110,7 @@ def logout(
         store.delete(account)
         success(f"Removed the token for {account!r} from the {store.name} backend")
     except StudioError as e:
-        _fail(str(e))
+        fail(str(e))
 
 
 @app.command()
@@ -156,7 +148,7 @@ def status(backend: str | None = BACKEND) -> None:
 
         console.print(listing)
     except StudioError as e:
-        _fail(str(e))
+        fail(str(e))
 
 
 @app.command("list")
@@ -167,7 +159,7 @@ def list_accounts(backend: str | None = BACKEND) -> None:
         for account in store.accounts():
             console.print(account)
     except StudioError as e:
-        _fail(str(e))
+        fail(str(e))
 
 
 @app.command()
@@ -196,4 +188,4 @@ def store(backend: str | None = typer.Argument(None)) -> None:
 
         success(f"The token backend is now {name}")
     except StudioError as e:
-        _fail(str(e))
+        fail(str(e))

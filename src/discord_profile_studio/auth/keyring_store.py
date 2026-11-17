@@ -70,8 +70,7 @@ class KeyringStore:
             entries: Any = json.loads(raw)
         except json.JSONDecodeError:
             # Broken index doe snot prevent keyring usage
-            log.warning(
-                "the keyring account index is corrupted, starting a new one")
+            log.warning("the keyring account index is corrupted, starting a new one")
             return []
 
         if not isinstance(entries, list):

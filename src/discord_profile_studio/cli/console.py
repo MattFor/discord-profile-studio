@@ -1,4 +1,8 @@
+from typing import NoReturn
+
+import typer
 from rich.console import Console
+from rich.markup import escape
 from rich.table import Table
 
 console = Console()
@@ -15,8 +19,14 @@ def table(title: str, columns: list[str]) -> Table:
 
 
 def error(message: str) -> None:
-    console.print(f"[bold red]error[/bold red] {message}")
+    console.print(f"[bold red]error[/bold red] {escape(message)}")
 
 
 def success(message: str) -> None:
-    console.print(f"[bold green]ok[/bold green] {message}")
+    console.print(f"[bold green]ok[/bold green] {escape(message)}")
+
+
+def fail(message: str) -> NoReturn:
+    error(message)
+
+    raise typer.Exit(1)
