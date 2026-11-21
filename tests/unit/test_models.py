@@ -5,13 +5,13 @@ from enum import Enum
 
 import pytest
 
-from discord_profile_studio.core.color import to_hex
 from discord_profile_studio.models import (
     Account,
     ActivityType,
     Asset,
     Button,
     Favourite,
+    FieldType,
     Party,
     Presence,
     Profile,
@@ -19,7 +19,7 @@ from discord_profile_studio.models import (
     TimestampMode,
     Timestamps,
     Widget,
-    WidgetKind,
+    WidgetField,
 )
 
 
@@ -60,19 +60,12 @@ def test_timestamps_default_to_no_mode_and_no_bounds():
     assert timestamps.end is None
 
 
-def test_widget_defaults_to_enabled_custom_kind_with_empty_content():
-    widget = Widget()
-
-    assert widget.kind is WidgetKind.CUSTOM
-    assert widget.enabled is True
-    assert widget.title == ""
-    assert widget.body == ""
-    assert widget.icon == ""
-    assert widget.options == {}
+def test_widget_defaults_to_no_application_and_no_fields():
+    assert Widget() == Widget(application_id="", name="", fields=[])
 
 
-def test_widget_default_accent_is_discord_blurple_in_to_hex_spelling():
-    assert Widget().accent == "#" + to_hex(0x5865F2)
+def test_widget_field_defaults_to_empty_text():
+    assert WidgetField() == WidgetField(name="", kind=FieldType.TEXT, value="")
 
 
 def test_favourite_defaults_to_unnamed_default_presence_without_widgets_or_tags():
@@ -150,7 +143,7 @@ def test_presence_buttons_are_not_shared_between_instances():
         pytest.param(Presence, "small_image", id="Presence.small_image"),
         pytest.param(Presence, "party", id="Presence.party"),
         pytest.param(Presence, "timestamps", id="Presence.timestamps"),
-        pytest.param(Widget, "options", id="Widget.options"),
+        pytest.param(Widget, "fields", id="Widget.fields"),
         pytest.param(Favourite, "presence", id="Favourite.presence"),
         pytest.param(Favourite, "widgets", id="Favourite.widgets"),
         pytest.param(Favourite, "tags", id="Favourite.tags"),
@@ -189,15 +182,9 @@ def test_mutable_default_is_a_fresh_object_per_instance(
             id="TimestampMode",
         ),
         pytest.param(
-            WidgetKind,
-            {
-                "STATUS": "status",
-                "MEDIA": "media",
-                "ACTIVITY": "activity",
-                "LINK": "link",
-                "CUSTOM": "custom",
-            },
-            id="WidgetKind",
+            FieldType,
+            {"TEXT": 1, "NUMBER": 2, "IMAGE": 3},
+            id="FieldType",
         ),
     ],
 )
@@ -210,7 +197,7 @@ def test_enum_members_match_their_wire_values_exactly(
 def test_enum_members_equal_their_plain_values():
     assert ActivityType.LISTENING == 2
     assert TimestampMode.SINCE_START == "since_start"
-    assert WidgetKind.LINK == "link"
+    assert FieldType.IMAGE == 3
 
 
 @pytest.mark.parametrize(

@@ -4,8 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, NoReturn, Protocol, cast
 
-from discord_profile_studio.core.color import to_hex, to_int
-from discord_profile_studio.core.exceptions import StorageError, ValidationError
+from discord_profile_studio.core.exceptions import StorageError
 from discord_profile_studio.models.favourite import Favourite
 from discord_profile_studio.models.presence import (
     ActivityType,
@@ -17,7 +16,7 @@ from discord_profile_studio.models.presence import (
     TimestampMode,
     Timestamps,
 )
-from discord_profile_studio.models.widget import Widget, WidgetKind
+from discord_profile_studio.models.widget import FieldType, Widget, WidgetField
 
 _NOTHING_REQUIRED: frozenset[str] = frozenset()
 _FAVOURITE_REQUIRED = frozenset({"name", "created_at", "updated_at"})
@@ -57,7 +56,8 @@ def presence_from_dict(data: object, *, where: str = "presence") -> Presence:
 
 def widget_to_dict(widget: Widget) -> dict[str, Any]:
     data = asdict(widget)
-    data["kind"] = widget.kind.value
+    for entry, source in zip(data["fields"], widget.fields, strict=True):
+        entry["kind"] = source.kind.value
     return data
 
 
@@ -65,13 +65,9 @@ def widget_from_dict(data: object, *, where: str = "widget") -> Widget:
     obj = _object(data, Widget, where)
     default = Widget()
     return Widget(
-        kind=_enum(obj, "kind", WidgetKind, default.kind, where),
-        title=_value(obj, "title", str, default.title, where),
-        body=_value(obj, "body", str, default.body, where),
-        icon=_value(obj, "icon", str, default.icon, where),
-        accent=_accent(obj, default.accent, where),
-        enabled=_value(obj, "enabled", bool, default.enabled, where),
-        options=_options(obj, where),
+        application_id=_value(obj, "application_id", str, default.application_id, where),
+        name=_value(obj, "name", str, default.name, where),
+        fields=_list(obj, "fields", _widget_field, where),
     )
 
 
@@ -173,6 +169,15 @@ def _button(data: object, *, where: str) -> Button:
     )
 
 
+def _widget_field(data: object, *, where: str) -> WidgetField:
+    obj = _object(data, WidgetField, where)
+    return WidgetField(
+        name=_value(obj, "name", str, "", where),
+        kind=_enum(obj, "kind", FieldType, FieldType.TEXT, where),
+        value=_value(obj, "value", str, "", where),
+    )
+
+
 def _party(data: object, *, where: str) -> Party:
     obj = _object(data, Party, where)
     return Party(
@@ -208,29 +213,6 @@ def _string(data: object, *, where: str) -> str:
     if type(data) is not str:
         _fail(where, "expected str", data)
     return data
-
-
-def _options(obj: dict[str, Any], where: str) -> dict[str, str]:
-    if "options" not in obj:
-        return {}
-    value = obj["options"]
-    if type(value) is not dict:
-        _fail(f"{where}.options", "expected an object", value)
-    options = cast("dict[object, object]", value)
-    result: dict[str, str] = {}
-    for key, item in options.items():
-        name = _string(key, where=f"{where}.options")
-        result[name] = _string(item, where=f"{where}.options.{name}")
-    return result
-
-
-def _accent(obj: dict[str, Any], default: str, where: str) -> str:
-    raw = _value(obj, "accent", str, default, where)
-    try:
-        return "#" + to_hex(to_int(raw))
-    except ValidationError as e:
-        msg = f"{where}.accent: invalid colour, got {reprlib.repr(raw)}"
-        raise StorageError(msg) from e
 
 
 def _moment(obj: dict[str, Any], key: str, where: str) -> datetime:

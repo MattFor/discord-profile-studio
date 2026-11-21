@@ -25,7 +25,7 @@ def new_state() -> str:
 
 
 def extract_code(response: str, state: str | None = None) -> str:
-    '''
+    """
     Prase the url and get the correct extraction code
 
     f.e discord redirects to local callback : http://127.0.0.1:6420/callback?code=ABC123&state=XYZ789
@@ -44,7 +44,7 @@ def extract_code(response: str, state: str | None = None) -> str:
     ABC123
 
     Also protects against CSRF
-    '''
+    """
 
     value = response.strip()
 
@@ -60,8 +60,7 @@ def extract_code(response: str, state: str | None = None) -> str:
 
     if error:
         description = query.get("error_description", [""])[0]
-        msg = f"Discord refused the authorisation: {error} {description}".strip(
-        )
+        msg = f"Discord refused the authorisation: {error} {description}".strip()
         raise AuthError(msg)
 
     code = query.get("code", [""])[0]
@@ -78,9 +77,7 @@ def extract_code(response: str, state: str | None = None) -> str:
 
 
 class OAuthFlow:
-
-    def __init__(self, client_id: str, client_secret: str,
-                 redirect_uri: str) -> None:
+    def __init__(self, client_id: str, client_secret: str, redirect_uri: str) -> None:
         self.client_id: str = client_id
         self.client_secret: str = client_secret
         self.redirect_uri: str = redirect_uri
@@ -148,11 +145,13 @@ class OAuthFlow:
     def exchange(self, code: str) -> Token:
         log.info("exchanging the authorisation code for a token")
 
-        return self._token({
-            "grant_type": "authorization_code",
-            "code": code,
-            "redirect_uri": self.redirect_uri,
-        })
+        return self._token(
+            {
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": self.redirect_uri,
+            }
+        )
 
     def refresh(self, token: Token) -> Token:
         if not token.refresh_token:
@@ -161,10 +160,12 @@ class OAuthFlow:
 
         log.info("refreshing the access token")
 
-        refreshed = self._token({
-            "grant_type": "refresh_token",
-            "refresh_token": token.refresh_token,
-        })
+        refreshed = self._token(
+            {
+                "grant_type": "refresh_token",
+                "refresh_token": token.refresh_token,
+            }
+        )
 
         if not refreshed.refresh_token:
             refreshed.refresh_token = token.refresh_token
@@ -180,7 +181,4 @@ class OAuthFlow:
 
         log.info("revoking the access token")
 
-        self._post(REVOKE_URL, {
-            "token": token.access_token,
-            "token_type_hint": "access_token"
-        })
+        self._post(REVOKE_URL, {"token": token.access_token, "token_type_hint": "access_token"})

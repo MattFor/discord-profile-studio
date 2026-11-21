@@ -2,6 +2,7 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
+import httpx
 import pytest
 
 from discord_profile_studio.models import (
@@ -9,13 +10,43 @@ from discord_profile_studio.models import (
     Asset,
     Button,
     Favourite,
+    FieldType,
     Presence,
     StatusDisplay,
     TimestampMode,
     Timestamps,
     Widget,
-    WidgetKind,
+    WidgetField,
 )
+from discord_profile_studio.widgets.api import API, IDENTITY_API
+
+WIDGET_APP = "1234567890"
+WIDGET_OWNER = "42"
+
+# Shape inferred from the Widget Identity Creator, see widgets/spec.py
+WIDGET_CONFIG = {
+    "config_id": "99",
+    "status": "draft",
+    "surfaces": [
+        {
+            "components": [
+                {
+                    "fields": [
+                        {"value_type": "static", "value": "Season 3", "presentation_type": "text"},
+                        {"value_type": "data", "value": "rank", "presentation_type": "text"},
+                        {"value_type": "data", "value": "level", "presentation_type": "integer"},
+                    ],
+                },
+                {
+                    "fields": [
+                        {"value_type": "data", "value": "cover", "presentation_type": "image"},
+                        {"value_type": "data", "value": "level", "presentation_type": "number"},
+                    ],
+                },
+            ],
+        },
+    ],
+}
 
 PLATFORM_MARKERS = {
     "windows": (sys.platform == "win32", "requires Windows"),
@@ -47,7 +78,13 @@ def favourite() -> Favourite:
             timestamps=Timestamps(mode=TimestampMode.SINCE_START),
             buttons=[Button(label="Repo", url="https://example.com")],
         ),
-        widgets=[Widget(kind=WidgetKind.LINK, title="Docs")],
+        widgets=[
+            Widget(
+                application_id="1234567890",
+                name="Stats",
+                fields=[WidgetField(name="level", kind=FieldType.NUMBER, value="42")],
+            ),
+        ],
         tags=["dev"],
         created_at=moment,
         updated_at=moment,
@@ -57,3 +94,44 @@ def favourite() -> Favourite:
 @pytest.fixture
 def store(tmp_path: Path) -> Path:
     return tmp_path / "favourites.json"
+
+
+class FakeDiscord:
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, str, dict[str, str], object]] = []
+        identity = (
+            f"{IDENTITY_API}/applications/{WIDGET_APP}/users/{WIDGET_OWNER}/identities/0/profile"
+        )
+        application = {"id": WIDGET_APP, "name": "Stats", "owner": {"id": WIDGET_OWNER}}
+        self.routes: dict[tuple[str, str], httpx.Response | httpx.HTTPError] = {
+            ("GET", f"{API}/oauth2/applications/@me"): httpx.Response(200, json=application),
+            ("GET", f"{API}/applications/{WIDGET_APP}/widget-configs"): httpx.Response(
+                200,
+                json=[WIDGET_CONFIG],
+            ),
+            ("PATCH", identity): httpx.Response(204),
+        }
+
+    def __call__(
+        self,
+        method: str,
+        url: str,
+        *,
+        headers: dict[str, str],
+        json: object,
+        **_: object,
+    ) -> httpx.Response:
+        self.calls.append((method, url, headers, json))
+        result = self.routes[method, url]
+
+        if isinstance(result, httpx.HTTPError):
+            raise result
+
+        return result
+
+
+@pytest.fixture
+def discord(monkeypatch: pytest.MonkeyPatch) -> FakeDiscord:
+    fake = FakeDiscord()
+    monkeypatch.setattr(httpx, "request", fake)
+    return fake

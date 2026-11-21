@@ -26,6 +26,10 @@ class ValidationError(StudioError):
     pass
 
 
+class WidgetError(StudioError):
+    pass
+
+
 class AuthError(StudioError):
     pass
 
