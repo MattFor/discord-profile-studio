@@ -1,4 +1,24 @@
-from discord_profile_studio.widgets.base import WidgetRenderer
-from discord_profile_studio.widgets.registry import available, get, register
+from discord_profile_studio.widgets.api import (
+    Application,
+    WidgetApi,
+    WidgetConfig,
+    authorize_url,
+    push_all,
+    token_account,
+)
+from discord_profile_studio.widgets.spec import Spec, fit, from_payload, problems, spec, to_payload
 
-__all__ = ["WidgetRenderer", "available", "get", "register"]
+__all__ = [
+    "Application",
+    "Spec",
+    "WidgetApi",
+    "WidgetConfig",
+    "authorize_url",
+    "fit",
+    "from_payload",
+    "problems",
+    "push_all",
+    "spec",
+    "to_payload",
+    "token_account",
+]

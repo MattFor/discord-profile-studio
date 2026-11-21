@@ -3,7 +3,8 @@ import pkgutil
 
 import typer
 
-from discord_profile_studio.cli import commands
+# A from-import here goes through cli/__init__ and forms an import cycle
+import discord_profile_studio.cli.commands as commands  # noqa: PLR0402
 from discord_profile_studio.core.logging import get, setup
 
 app = typer.Typer(

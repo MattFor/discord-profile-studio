@@ -9,12 +9,13 @@ from discord_profile_studio.core.exceptions import StorageError
 from discord_profile_studio.models import (
     ActivityType,
     Favourite,
+    FieldType,
     Presence,
     StatusDisplay,
     TimestampMode,
     Timestamps,
     Widget,
-    WidgetKind,
+    WidgetField,
 )
 from discord_profile_studio.storage.serializers import (
     favourite_from_dict,
@@ -49,13 +50,9 @@ def version_1_document() -> dict[str, Any]:
         },
         "widgets": [
             {
-                "kind": "link",
-                "title": "Docs",
-                "body": "",
-                "icon": "",
-                "accent": "#5865F2",
-                "enabled": True,
-                "options": {},
+                "application_id": "1234567890",
+                "name": "Stats",
+                "fields": [{"name": "level", "kind": 2, "value": "42"}],
             },
         ],
         "tags": ["dev"],
@@ -107,7 +104,7 @@ def test_round_trip_rebuilds_enum_members_not_raw_values(favourite: Favourite):
     assert type(loaded.presence.activity_type) is ActivityType
     assert type(loaded.presence.status_display) is StatusDisplay
     assert type(loaded.presence.timestamps.mode) is TimestampMode
-    assert type(loaded.widgets[0].kind) is WidgetKind
+    assert type(loaded.widgets[0].fields[0].kind) is FieldType
 
 
 @pytest.mark.parametrize("mode", list(TimestampMode), ids=lambda mode: mode.name)
@@ -118,7 +115,9 @@ def test_every_timestamp_mode_is_read_back_as_the_same_member(mode: TimestampMod
 
 
 def test_presence_and_widget_survive_their_own_round_trip(favourite: Favourite):
-    widget = Widget(kind=WidgetKind.MEDIA, options={"mode": "compact"}, enabled=False)
+    widget = Widget(
+        "1", "Art", [WidgetField("cover", FieldType.IMAGE, "https://example.com/a.png")]
+    )
 
     assert presence_from_dict(presence_to_dict(favourite.presence)) == favourite.presence
     assert widget_from_dict(widget_to_dict(widget)) == widget
@@ -192,9 +191,9 @@ def test_unknown_key_raises_with_its_path(path: str):
         pytest.param("presence", [], id="list-for-object"),
         pytest.param("presence.buttons", {}, id="object-for-list"),
         pytest.param("presence.buttons[0]", "Repo", id="str-for-button"),
-        pytest.param("widgets[0].enabled", 1, id="int-for-bool"),
-        pytest.param("widgets[0].options", [], id="list-for-options"),
-        pytest.param("widgets[0].options", {"mode": 1}, id="int-option-value"),
+        pytest.param("widgets[0].fields", {}, id="object-for-fields"),
+        pytest.param("widgets[0].fields[0].kind", "2", id="str-for-field-kind"),
+        pytest.param("widgets[0].fields[0].value", 42, id="int-for-field-value"),
         pytest.param("tags[0]", 7, id="int-tag"),
         pytest.param("created_at", 1767323045, id="int-for-timestamp"),
     ],
@@ -220,7 +219,7 @@ def test_favourite_that_is_not_an_object_raises():
         ("presence.activity_type", 1),
         ("presence.status_display", 3),
         ("presence.timestamps.mode", "later"),
-        ("widgets[0].kind", "banner"),
+        ("widgets[0].fields[0].kind", 4),
     ],
 )
 def test_unknown_enum_value_raises_and_chains_the_lookup_error(path: str, value: object):
@@ -258,18 +257,6 @@ def test_timestamp_offset_is_kept_as_the_same_instant():
     loaded = favourite_from_dict(document)
 
     assert loaded.created_at == datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
-
-
-@pytest.mark.parametrize("raw", ["#5865f2", "5865F2", " #5865f2 "])
-def test_accent_is_normalized_to_uppercase_with_hash_on_read(raw: str):
-    assert widget_from_dict({"accent": raw}).accent == "#5865F2"
-
-
-def test_invalid_accent_raises_and_chains_the_colour_error():
-    with pytest.raises(StorageError, match=re.escape("widget.accent: invalid colour")) as caught:
-        widget_from_dict({"accent": "#12345"})
-
-    assert caught.value.__cause__ is not None
 
 
 def test_error_message_shows_the_bad_value():

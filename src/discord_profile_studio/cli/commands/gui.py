@@ -1,9 +1,16 @@
 import tkinter as tk
+from collections.abc import Callable
 from threading import Thread
+from typing import Any
 
-import pystray
 import typer
-from PIL import Image, ImageDraw
+
+from discord_profile_studio.cli.console import fail
+from discord_profile_studio.core.exceptions import StudioError
+from discord_profile_studio.core.paths import favourites_file
+from discord_profile_studio.gui.app import Application
+from discord_profile_studio.gui.state import AppState
+from discord_profile_studio.storage.repository import FavouriteRepository
 
 app = typer.Typer(no_args_is_help=False, invoke_without_command=True)
 
@@ -12,9 +19,13 @@ def _create_tray_icon(
     root: tk.Tk,
     *,
     favourite: str | None,
-    on_show: callable,
-    on_quit: callable,
-) -> pystray.Icon:
+    on_show: Callable[[], None],
+    on_quit: Callable[[], None],
+) -> Any:  # pystray.Icon is a runtime variable, not a type
+    # pystray needs a display at import time, which would break every dps command headless
+    import pystray  # noqa: PLC0415
+    from PIL import Image, ImageDraw  # noqa: PLC0415
+
     image = Image.new("RGBA", (64, 64), (20, 20, 20, 255))
     draw = ImageDraw.Draw(image)
     draw.rounded_rectangle(
@@ -33,12 +44,12 @@ def _create_tray_icon(
     menu = pystray.Menu(
         pystray.MenuItem(
             "Show",
-            lambda icon, item: root.after(0, on_show),
+            lambda: root.after(0, on_show),
             default=True,
         ),
         pystray.MenuItem(
             "Quit",
-            lambda icon, item: root.after(0, on_quit),
+            lambda: root.after(0, on_quit),
         ),
     )
 
@@ -60,56 +71,26 @@ def _launch(
     minimized: bool,
     tray: bool,
 ) -> None:
-    root = tk.Tk()
-    root.title("Discord Profile Studio")
-    root.geometry("700x450")
-    root.minsize(500, 300)
+    state = AppState()
 
-    favourite_var = tk.StringVar(value=favourite or "No favourite selected")
+    if favourite:
+        try:
+            state.set_current(FavouriteRepository(favourites_file()).get(favourite))
+        except StudioError as e:
+            fail(str(e))
 
-    frame = tk.Frame(root, padx=24, pady=24)
-    frame.pack(fill="both", expand=True)
+    root = Application(state)
+    root.build()
 
-    title = tk.Label(
-        frame,
-        text="Discord Profile Studio",
-        font=("TkDefaultFont", 18, "bold"),
-    )
-    title.pack(pady=(10, 4))
-
-    favourite_label = tk.Label(
-        frame,
-        text="Favourite:",
-    )
-    favourite_label.pack()
-
-    favourite_value = tk.Label(
-        frame,
-        textvariable=favourite_var,
-        font=("TkDefaultFont", 12, "bold"),
-    )
-    favourite_value.pack(pady=(4, 20))
-
-    status_var = tk.StringVar(value="Ready")
-
-    status = tk.Label(
-        frame,
-        textvariable=status_var,
-        fg="gray",
-    )
-    status.pack(side="bottom")
-
-    tray_icon: pystray.Icon | None = None
+    tray_icon: Any = None
 
     def show() -> None:
         root.deiconify()
         root.lift()
         root.focus_force()
-        status_var.set("Ready")
 
     def hide() -> None:
         root.withdraw()
-        status_var.set("Running in tray")
 
     def quit_app() -> None:
         nonlocal tray_icon
@@ -128,15 +109,16 @@ def _launch(
     root.protocol("WM_DELETE_WINDOW", on_close)
 
     if tray:
-        tray_icon = _create_tray_icon(
+        icon = _create_tray_icon(
             root,
             favourite=favourite,
             on_show=show,
             on_quit=quit_app,
         )
+        tray_icon = icon
 
         Thread(
-            target=tray_icon.run,
+            target=icon.run,
             daemon=True,
             name="dps-tray",
         ).start()

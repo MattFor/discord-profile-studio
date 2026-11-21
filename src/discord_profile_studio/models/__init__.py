@@ -11,7 +11,7 @@ from discord_profile_studio.models.presence import (
     Timestamps,
 )
 from discord_profile_studio.models.profile import Profile
-from discord_profile_studio.models.widget import Widget, WidgetKind
+from discord_profile_studio.models.widget import FieldType, Widget, WidgetField
 
 __all__ = [
     "Account",
@@ -19,6 +19,7 @@ __all__ = [
     "Asset",
     "Button",
     "Favourite",
+    "FieldType",
     "Party",
     "Presence",
     "Profile",
@@ -26,5 +27,5 @@ __all__ = [
     "TimestampMode",
     "Timestamps",
     "Widget",
-    "WidgetKind",
+    "WidgetField",
 ]

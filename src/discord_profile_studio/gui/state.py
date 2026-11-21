@@ -7,23 +7,30 @@ Listener = Callable[[Favourite], None]
 
 class AppState:
     def __init__(self) -> None:
-        self.current: Favourite
-        self.hovered: Favourite | None
-        self.dirty: bool
-        self._listeners: list[Listener]
+        self.current: Favourite = Favourite()
+        self.hovered: Favourite | None = None
+        self.dirty: bool = False
+        self._listeners: list[Listener] = []
 
     @property
     def previewed(self) -> Favourite:
-        raise NotImplementedError
+        return self.current if self.hovered is None else self.hovered
 
     def subscribe(self, listener: Listener) -> Callable[[], None]:
-        raise NotImplementedError
+        self._listeners.append(listener)
+
+        return lambda: self._listeners.remove(listener)
 
     def notify(self) -> None:
-        raise NotImplementedError
+        # A copy, so a listener may unsubscribe while being called
+        for listener in list(self._listeners):
+            listener(self.previewed)
 
     def set_current(self, favourite: Favourite) -> None:
-        raise NotImplementedError
+        self.current = favourite
+        self.dirty = False
+        self.notify()
 
     def set_hovered(self, favourite: Favourite | None) -> None:
-        raise NotImplementedError
+        self.hovered = favourite
+        self.notify()
